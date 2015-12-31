@@ -1,0 +1,9 @@
+---
+# defaults file for netzwirt.http-haproxy
+
+haproxy_bind_address: '*'
+
+haproxy_stats_uri: '/haproxy?stats'
+haproxy_stats_users: []
+  
+haproxy_pem_lookup: "{{inventory_dir}}/certs/"

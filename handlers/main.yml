@@ -1,0 +1,7 @@
+---
+# handlers file for netzwirt.http-haproxy
+
+- name: restart haproxy
+  service: 
+    name=haproxy 
+    state=restarted

@@ -1,0 +1,52 @@
+    # global acl ranges 
+{% if haproxy_source_acl is defined %}
+{% for name,config in haproxy_source_acl.iteritems() %}
+    acl range-{{name}} src {% for ip in config %}{{ip}} {% endfor %}
+
+{% endfor %}
+{% endif %}
+
+    # define domains
+{% for domain, config in haproxy_domains.iteritems() %}
+{% set use_http=config.http|default(haproxy_default_http) %}
+{% set use_https=config.https|default(haproxy_default_https) %}
+{% if use_http and configure_http %}
+    acl use-{{domain}} hdr_end(host) -i {{domain}} # host based
+{% endif %}
+{% if use_https and configure_https %}
+    acl use-{{domain}}  ssl_fc_sni {{domain}} # SNI based
+{% endif %}
+{% endfor %}
+
+    # block unwanted access
+{% if haproxy_source_acl is defined %}
+{% for domain, config in haproxy_domains.iteritems() %}
+{% if config.limit_to is defined and config.limit_to[0] is defined%}
+{% set use_http=config.http|default(haproxy_default_http) %}
+{% set use_https=config.https|default(haproxy_default_https) %}
+{% if (use_http and configure_http) or (use_https and configure_https) %}
+    http-request deny if use-{{domain}} {% for acl in config.limit_to %}!range-{{acl}} {% endfor %}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if configure_http %}
+    # redirect to https
+{% for domain, config in haproxy_domains.iteritems() %}
+{% set use_http=config.http|default(haproxy_default_http) %}
+{% set use_https=config.https|default(haproxy_default_https) %}
+{% if config.redirect is defined and config.redirect != None and use_https and use_http %}
+    redirect scheme https code 301 if !{ ssl_fc } use-{{domain}}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+    # get backend for domain
+{% for domain, config in haproxy_domains.iteritems() %}
+{% set use_http=config.http|default(haproxy_default_http) %}
+{% set use_https=config.https|default(haproxy_default_https) %}
+{% if (use_http and configure_http) or (use_https and configure_https) %}
+    use_backend backend.{{domain}} if use-{{domain}}
+{% endif %}
+{% endfor %}

@@ -1,0 +1,14 @@
+---
+# vars file for netzwirt.http-haproxy
+
+# default backend options
+haproxy_default_backend_options:
+- balance: leastconn
+- option: httpclose
+- option: forwardfor
+
+haproxy_default_backend_port: 80
+haproxy_default_backend_check: check
+
+haproxy_default_https: false
+haproxy_default_http: true

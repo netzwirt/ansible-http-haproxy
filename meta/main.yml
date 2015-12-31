@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  author: 'Reto Gassmann'
+  description: 'Setup haproxy as reverse http(s)-proxy with no pain'
+  license: BSD
+  min_ansible_version: '1.8'
+
+  platforms:
+  - name: Ubuntu
+    versions:
+    - trusty
+  - name: Debian
+    versions:
+    - jessie
+
+  categories:
+  - networking
+  - system
+  - web
+  
+dependencies: []
+  

@@ -1,0 +1,47 @@
+---
+# tasks file for netzwirt.http-haproxy
+
+- name: update apt-cache
+  apt: 
+    update_cache=yes 
+    cache_valid_time=3600      
+
+- name: install haproxy
+  apt: 
+    name=haproxy 
+    state=present
+
+- name: enable init script
+  replace: 
+    dest='/etc/default/haproxy' 
+    regexp='ENABLED=0'
+    replace='ENABLED=1'
+
+- debug: var=haproxy_domains
+- debug: var=haproxy_default_backend_options
+
+- name: create certs directory
+  file: 
+    path=/etc/haproxy/certs
+    state=directory 
+    mode=0755 
+    owner=root
+  
+- name: copy pem files
+  copy:
+    src={{haproxy_certs_lookup}}/{{item.key}}.pem
+    dest=/etc/haproxy/certs/{{item.key}}.pem
+    owner=haproxy
+    group=haproxy
+  notify: [restart haproxy]
+  when: item.value.https|default(haproxy_default_https)
+  with_dict: haproxy_domains
+  
+  
+- name: update config
+  template: 
+    src=haproxy.cfg.j2
+    dest=/etc/haproxy/haproxy.cfg 
+    backup=yes
+  notify: 
+    - restart haproxy

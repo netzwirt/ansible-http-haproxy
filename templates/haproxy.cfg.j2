@@ -1,0 +1,88 @@
+# {{ ansible_managed }}
+# config for haproxy 1.5.x
+
+global
+    log 127.0.0.1   local0
+    log 127.0.0.1   local1 notice
+    maxconn 4096
+    user haproxy
+    group haproxy
+    daemon
+
+defaults
+    log global
+    mode http
+    option httplog
+    option dontlognull
+    timeout connect 5000
+    timeout client  50000
+    timeout server  50000
+    errorfile 400 /etc/haproxy/errors/400.http
+    errorfile 403 /etc/haproxy/errors/403.http
+    errorfile 408 /etc/haproxy/errors/408.http
+    errorfile 500 /etc/haproxy/errors/500.http
+    errorfile 502 /etc/haproxy/errors/502.http
+    errorfile 503 /etc/haproxy/errors/503.http
+    errorfile 504 /etc/haproxy/errors/504.http
+{% if haproxy_stats_users is defined and haproxy_stats_users[0] is defined %}
+    stats enable
+    stats uri {{haproxy_stats_uri}}
+    stats realm Strictly\ Private
+{% for user in haproxy_stats_users %}
+    stats auth {{user.username}}:{{user.password}}
+{% endfor %}
+{% endif %}
+    
+
+# default frontend for all http traffic
+#######################################
+
+frontend http-public
+    bind {{haproxy_bind_address}}:80
+    mode http
+    # select backend based on hostname
+{% set configure_http=true %}
+{% set configure_https=false %}
+{% include "domains.j2" %}
+
+# default frontend for all https traffic
+########################################
+
+frontend https-public
+    bind {{haproxy_bind_address}}:443 ssl {% include "certs.j2" %} 
+    mode http
+    # select backend based on SNI
+{% set configure_http=false %}
+{% set configure_https=true %}
+{% include "domains.j2" %}
+       
+# define backends
+#################
+{% for domain, config in haproxy_domains.iteritems() %}
+
+##### backend for domain: {{domain}} #####
+backend backend.{{domain}}
+    mode http
+{% if config.options is defined and config.options[0] is defined%}
+{# use options defined for this domain #}
+{% for item in config.options %}
+    {% for key,val in item.iteritems() %}{{key}} {{val}}{% endfor %}
+ 
+{% endfor %}
+{% else %}
+{# use default options #}
+{% for item in haproxy_default_backend_options %}
+    {% for key,val in item.iteritems() %}{{key}} {{val}}{% endfor %}
+ 
+{% endfor %}
+{% endif %}
+{% if config.backend.check is defined and config.backend.check != None %}
+{% set checks = config.backend.check %}
+{% else %}
+{% set checks = haproxy_default_backend_check %}
+{% endif %}
+{% for server in config.backend.servers %}
+    server node{{loop.index}}.backend.{{domain}} {{server}}:{{config.backend.port|default(haproxy_default_backend_port)}} {{checks}}
+{% endfor %}
+
+{% endfor %}
