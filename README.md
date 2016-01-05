@@ -74,11 +74,11 @@ Change statistics URL with:
 
     haproxy_stats_uri: '/haproxy?stats'
 
-##Bind address `haproxy_bind_address`
+##Bind address `haproxy_default_bind_address`
 
 By default haproxy listens to all interfaces (*). You can override it by setting:
 
-    haproxy_bind_address: 23.4.5.6
+    haproxy_default_bind_address: 23.4.5.6
 
 ##SSL support
 

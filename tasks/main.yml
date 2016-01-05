@@ -17,9 +17,6 @@
     regexp='ENABLED=0'
     replace='ENABLED=1'
 
-- debug: var=haproxy_domains
-- debug: var=haproxy_default_backend_options
-
 - name: create certs directory
   file: 
     path=/etc/haproxy/certs

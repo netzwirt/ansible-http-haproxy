@@ -1,9 +1,18 @@
 ---
 # defaults file for netzwirt.http-haproxy
 
-haproxy_bind_address: '*'
+haproxy_default_enable_ssl: false
+
+haproxy_default_bind_address: '*'
 
 haproxy_stats_uri: '/haproxy?stats'
 haproxy_stats_users: []
   
 haproxy_pem_lookup: "{{inventory_dir}}/certs/"
+
+#haproxy_frontends:
+#  internal: 
+#    bind_address: 10.01.01.1
+#  public: 
+#    bind_address: 23.66.77.88
+    

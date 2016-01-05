@@ -33,31 +33,43 @@ defaults
 {% endfor %}
 {% endif %}
     
+{% if haproxy_frontends is defined %} 
+{% set haproxy_configure_frontends = haproxy_frontends %}
+{% else %}
+{% set haproxy_configure_frontends = haproxy_default_frontends %}
+{% endif %}
 
-# default frontend for all http traffic
-#######################################
+{% for frontend_name, frontend_config in haproxy_configure_frontends.iteritems() %}
+# {{frontend_name}} frontend for all http traffic
+##################################################
 
-frontend http-public
-    bind {{haproxy_bind_address}}:80
+frontend http-{{frontend_name}}
+    bind {{frontend_config.bind_address}}:80
     mode http
     # select backend based on hostname
 {% set configure_http=true %}
 {% set configure_https=false %}
 {% include "domains.j2" %}
 
-# default frontend for all https traffic
-########################################
+{% if haproxy_default_enable_ssl %}
 
-frontend https-public
-    bind {{haproxy_bind_address}}:443 ssl {% include "certs.j2" %} 
+# {{frontend_name}} frontend for all https traffic
+##################################################
+
+frontend https-{{frontend_name}}
+    bind {{frontend_config.bind_address}}:443 ssl {% include "certs.j2" %} 
     mode http
     # select backend based on SNI
 {% set configure_http=false %}
 {% set configure_https=true %}
 {% include "domains.j2" %}
-       
+
+{% endif %}
+
+{% endfor %}  
+ 
 # define backends
-#################
+##################################################
 {% for domain, config in haproxy_domains.iteritems() %}
 
 ##### backend for domain: {{domain}} #####

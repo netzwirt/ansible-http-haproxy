@@ -12,3 +12,8 @@ haproxy_default_backend_check: check
 
 haproxy_default_https: false
 haproxy_default_http: true
+
+# use dict!
+haproxy_default_frontends: 
+  default: 
+    bind_address: "{{haproxy_default_bind_address}}"
