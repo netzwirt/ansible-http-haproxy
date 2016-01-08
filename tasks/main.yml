@@ -1,15 +1,32 @@
 ---
 # tasks file for netzwirt.http-haproxy
 
+
+- name:  add haproxy apt repo for wheezy
+  apt_repository: 
+    repo="deb http://httpredir.debian.org/debian wheezy-backports main" 
+    state=present 
+    update_cache=yes
+  when: ansible_distribution_release == "wheezy"
+  
+- name: add haproxy apt repo
+  apt_repository: 
+    repo="ppa:vbernat/haproxy-1.5" 
+    state=present 
+    update_cache=yes
+  when: ansible_distribution == "Ubuntu"
+
 - name: update apt-cache
   apt: 
     update_cache=yes 
     cache_valid_time=3600      
-
-- name: install haproxy
-  apt: 
-    name=haproxy 
-    state=present
+    
+- name: install packages
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - haproxy
+    - socat
+  when: ansible_os_family == 'Debian'
 
 - name: enable init script
   replace: 
@@ -39,6 +56,5 @@
   template: 
     src=haproxy.cfg.j2
     dest=/etc/haproxy/haproxy.cfg 
-    backup=yes
   notify: 
     - restart haproxy

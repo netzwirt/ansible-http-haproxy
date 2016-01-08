@@ -1,52 +1,77 @@
-    # global acl ranges 
+
 {% if haproxy_source_acl is defined %}
+    # acl ranges 
 {% for name,config in haproxy_source_acl.iteritems() %}
     acl range-{{name}} src {% for ip in config %}{{ip}} {% endfor %}
 
 {% endfor %}
 {% endif %}
 
-    # define domains
+{# -- LOOP ALL DOMAINS -- #}
 {% for domain, config in haproxy_domains.iteritems() %}
-{% set use_http=config.http|default(haproxy_default_http) %}
-{% set use_https=config.https|default(haproxy_default_https) %}
-{% if use_http and configure_http %}
+{# -- SET VARIABLES -- #}
+{% set __use_http=config.http|default(haproxy_default_http) %}
+{% set __use_https=config.https|default(haproxy_default_https) %}
+{% if config.redirect is defined and config.redirect != None and __use_https and __use_http %}
+{% set __redirect_to_https=True %}
+{% else %}
+{% set __redirect_to_https=False %}
+{% endif %}
+{# -- USE DOMAIN: frontent is defined in config or if not defined and __frontend_index 1 (the first one) -- #}
+{% if not config.frontends is defined and __frontend_index == 1%}
+	{% set __use_domain=True %}
+{% elif frontend_name in config.frontends|default([]) %}
+	{% set __use_domain=True %}
+{% else %}
+	{% set __use_domain=False %}
+{% endif %}
+{# -- USE DOMAIN: no frontends defined so use it :) #}
+{% if not haproxy_frontends is defined %} 
+	{% set __use_domain=True %}
+{% endif %}
+
+{%- if __use_domain %}
+
+{%- if (configure_http and __use_http) or (configure_https and __use_https) %}
+
+    # {{domain}} settings ---------------------------
+{% if __use_http and configure_http %}
     acl use-{{domain}} hdr_end(host) -i {{domain}} # host based
+{% for alias in config.alias|default([]) %}
+    acl use-{{domain}} hdr_end(host) -i {{alias}} # host based
+{% endfor %}
 {% endif %}
-{% if use_https and configure_https %}
+{% if __use_https and configure_https %}
     acl use-{{domain}}  ssl_fc_sni {{domain}} # SNI based
-{% endif %}
+{% for alias in config.alias|default([]) %}
+    acl use-{{domain}}  ssl_fc_sni {{alias}} # SNI based
 {% endfor %}
+{% endif -%}
 
-    # block unwanted access
-{% if haproxy_source_acl is defined %}
-{% for domain, config in haproxy_domains.iteritems() %}
-{% if config.limit_to is defined and config.limit_to[0] is defined%}
-{% set use_http=config.http|default(haproxy_default_http) %}
-{% set use_https=config.https|default(haproxy_default_https) %}
-{% if (use_http and configure_http) or (use_https and configure_https) %}
+
+{% if haproxy_source_acl is defined -%}
+{% if config.limit_to is defined and config.limit_to[0] is defined %}
+
+    # block unwanted access for {{domain}}
     http-request deny if use-{{domain}} {% for acl in config.limit_to %}!range-{{acl}} {% endfor %}
-{% endif %}
-{% endif %}
-{% endfor %}
-{% endif %}
+{% endif -%}
+{% endif -%}
 
-{% if configure_http %}
-    # redirect to https
-{% for domain, config in haproxy_domains.iteritems() %}
-{% set use_http=config.http|default(haproxy_default_http) %}
-{% set use_https=config.https|default(haproxy_default_https) %}
-{% if config.redirect is defined and config.redirect != None and use_https and use_http %}
+
+{%- if __redirect_to_https and configure_http %}
+
+    # redirect {{domain}} to https
     redirect scheme https code 301 if !{ ssl_fc } use-{{domain}}
-{% endif %}
-{% endfor %}
-{% endif %}
+{% else %}
 
-    # get backend for domain
-{% for domain, config in haproxy_domains.iteritems() %}
-{% set use_http=config.http|default(haproxy_default_http) %}
-{% set use_https=config.https|default(haproxy_default_https) %}
-{% if (use_http and configure_http) or (use_https and configure_https) %}
+    # set backend for {{domain}}
     use_backend backend.{{domain}} if use-{{domain}}
-{% endif %}
+{% endif -%} {# __redirect_to_https #}
+
+{% endif -%} {# configure_http and __use_http) or (configure_https and __use_https) #}
+
+{% endif -%} {# __use_domain #}
+
 {% endfor %}
+
+ 

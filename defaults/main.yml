@@ -1,7 +1,6 @@
 ---
 # defaults file for netzwirt.http-haproxy
 
-haproxy_default_enable_ssl: false
 
 haproxy_default_bind_address: '*'
 

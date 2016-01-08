@@ -38,33 +38,31 @@ defaults
 {% else %}
 {% set haproxy_configure_frontends = haproxy_default_frontends %}
 {% endif %}
+{% set __certificates -%}
+	{% include "certs.j2" %} 
+{%- endset %}
 
 {% for frontend_name, frontend_config in haproxy_configure_frontends.iteritems() %}
 # {{frontend_name}} frontend for all http traffic
 ##################################################
-
+{% set __frontend_index=loop.index %}
 frontend http-{{frontend_name}}
     bind {{frontend_config.bind_address}}:80
     mode http
-    # select backend based on hostname
-{% set configure_http=true %}
-{% set configure_https=false %}
-{% include "domains.j2" %}
+	{% set configure_http=true %}
+	{% set configure_https=false %}
+	{%- include "domains.j2" %}
 
-{% if haproxy_default_enable_ssl %}
-
+{% if __certificates != '' %}
 # {{frontend_name}} frontend for all https traffic
 ##################################################
-
 frontend https-{{frontend_name}}
-    bind {{frontend_config.bind_address}}:443 ssl {% include "certs.j2" %} 
+    bind {{frontend_config.bind_address}}:443 ssl {{__certificates}}
     mode http
-    # select backend based on SNI
-{% set configure_http=false %}
-{% set configure_https=true %}
-{% include "domains.j2" %}
-
-{% endif %}
+	{% set configure_http=false %}
+	{% set configure_https=true %}
+	{%- include "domains.j2" %}
+{% endif -%}
 
 {% endfor %}  
  
