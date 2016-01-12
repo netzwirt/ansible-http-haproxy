@@ -87,6 +87,28 @@ To enable ssl (https) you need certificates stored in .pem format, including all
 The name of the file must be _domain-name_.pem (_domain-name_ must match a key in `haproxy_domains`).
 And the file must be stored in the directory defined in `haproxy_pem_lookup` (Default is ./certs/ relative to your inventory file )
 
+##Multiple frontends
+
+In version 0.2 it's possible to have multiple frontends running with different ip's.
+
+    haproxy_frontends:
+      internal: 
+        bind_address: 10.100.2.30
+      public: 
+        bind_address: 10.100.2.33
+      another: 
+        bind_address: 10.100.2.34  
+
+Bind domains to frontends by adding `frontends` to domain config. If no frontend is defined for a domain it will listen on the first one defined in `haproxy_frontends`
+
+    haproxy_domains:
+	  jenkins.example.com:
+	    ....
+	    ....
+	    frontends:
+        - public
+        - another
+	    ....
 
 #Dependencies
 
