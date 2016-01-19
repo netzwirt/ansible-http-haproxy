@@ -12,11 +12,14 @@ global
 defaults
     log global
     mode http
+
     option httplog
     option dontlognull
+
     timeout connect 5000
     timeout client  50000
     timeout server  50000
+
     errorfile 400 /etc/haproxy/errors/400.http
     errorfile 403 /etc/haproxy/errors/403.http
     errorfile 408 /etc/haproxy/errors/408.http
@@ -24,12 +27,13 @@ defaults
     errorfile 502 /etc/haproxy/errors/502.http
     errorfile 503 /etc/haproxy/errors/503.http
     errorfile 504 /etc/haproxy/errors/504.http
+
 {% if haproxy_stats_users is defined and haproxy_stats_users[0] is defined %}
     stats enable
-    stats uri {{haproxy_stats_uri}}
+    stats uri {{ haproxy_stats_uri }}
     stats realm Strictly\ Private
 {% for user in haproxy_stats_users %}
-    stats auth {{user.username}}:{{user.password}}
+    stats auth {{ user.username }}:{{ user.password }}
 {% endfor %}
 {% endif %}
     
@@ -47,17 +51,17 @@ defaults
 ##################################################
 {% set __frontend_index=loop.index %}
 frontend http-{{frontend_name}}
-    bind {{frontend_config.bind_address}}:80
+    bind {{ frontend_config.bind_address }}:80
     mode http
 	{% set configure_http=true %}
 	{% set configure_https=false %}
 	{%- include "domains.j2" %}
 
 {% if __certificates != '' %}
-# {{frontend_name}} frontend for all https traffic
+# {{ frontend_name }} frontend for all https traffic
 ##################################################
-frontend https-{{frontend_name}}
-    bind {{frontend_config.bind_address}}:443 ssl {{__certificates}}
+frontend https-{{ frontend_name }}
+    bind {{ frontend_config.bind_address }}:443 ssl {{ __certificates }}
     mode http
 	{% set configure_http=false %}
 	{% set configure_https=true %}
@@ -68,31 +72,29 @@ frontend https-{{frontend_name}}
  
 # define backends
 ##################################################
+{# ---- backends for default route / ---- #}
+
 {% for domain, config in haproxy_domains.iteritems() %}
 
-##### backend for domain: {{domain}} #####
-backend backend.{{domain}}
+
+##### backend for domain: {{ domain }} #####
+backend backend.{{ domain }}
     mode http
-{% if config.options is defined and config.options[0] is defined%}
-{# use options defined for this domain #}
-{% for item in config.options %}
-    {% for key,val in item.iteritems() %}{{key}} {{val}}{% endfor %}
- 
-{% endfor %}
-{% else %}
-{# use default options #}
-{% for item in haproxy_default_backend_options %}
-    {% for key,val in item.iteritems() %}{{key}} {{val}}{% endfor %}
- 
-{% endfor %}
-{% endif %}
-{% if config.backend.check is defined and config.backend.check != None %}
-{% set checks = config.backend.check %}
-{% else %}
-{% set checks = haproxy_default_backend_check %}
-{% endif %}
-{% for server in config.backend.servers %}
-    server node{{loop.index}}.backend.{{domain}} {{server}}:{{config.backend.port|default(haproxy_default_backend_port)}} {{checks}}
+{% include "backends.j2" %}
 {% endfor %}
 
+{# ---- backends with special routes ---- #}
+{# -- loop trough routes an include backend again #}
+
+{% for domain, masterconfig in haproxy_domains.iteritems() %}
+{% set routingbackends=masterconfig.backend.routing|default({}) %}
+{% for route, config in routingbackends.iteritems() %}
+
+
+##### backend for domain: {{ domain }} route: /{{ route }} #####
+{% set suffix='.' + route|replace('/','--') %}
+backend backend.{{ domain }}{{ suffix }}
+    mode http
+{% include "backends.j2" %}
+{% endfor %}
 {% endfor %}

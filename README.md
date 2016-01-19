@@ -10,6 +10,7 @@ Just define the domain-names and the backends ip's to configure a reverse proxy.
 - ACL's 
 - Domain-name or SNI based backend selection
 - Enforce redirects http -> https
+- "Routing" different url's can connect to different backends
 
 #Role Variables
 
@@ -45,23 +46,23 @@ Minimal config:
 
 All config options:
 
-	haproxy_domains:
-	  jenkins.example.com:
-	    https: true         # optional default is false
-	    http: true          # optional default is true
-	    redirect: false     # optional default is false, if true https and http must be true to redirect domain to https
-	    options:            # optional, default is balance leastconn, option httpclose, option forwardfor
-	    - key: value        # if used: list with key: value pairs
-	    limit_to:           # optional, no default
-	    - office.public     # if used: list names defined in "haproxy_source_acl"
-	    - github.com
-	    backend:
-	      port: 8080        # optional -> default is 80
-	      check:            # optional -> default is check 
-	      servers:
-	      - 10.100.2.80
-	      - 10.100.2.81
-	      - 10.100.2.82
+    haproxy_domains:
+      jenkins.example.com:
+        https: true         # optional default is false
+        http: true          # optional default is true
+        redirect: false     # optional default is false, if true https and http must be true to redirect domain to https
+        options:            # optional, default is balance leastconn, option httpclose, option forwardfor
+        - key: value        # if used: list with key: value pairs
+        limit_to:           # optional, no default
+        - office.public     # if used: list names defined in "haproxy_source_acl"
+        - github.com
+        backend:
+          port: 8080        # optional -> default is 80
+          check:            # optional -> default is check 
+          servers:
+          - 10.100.2.80
+          - 10.100.2.81
+          - 10.100.2.82
 
 ##Enable statistics frontend `haproxy_stats_users`
 
@@ -102,13 +103,34 @@ In version 0.2 it's possible to have multiple frontends running with different i
 Bind domains to frontends by adding `frontends` to domain config. If no frontend is defined for a domain it will listen on the first one defined in `haproxy_frontends`
 
     haproxy_domains:
-	  jenkins.example.com:
-	    ....
-	    ....
-	    frontends:
+    jenkins.example.com:
+      ....
+      ....
+      frontends:
         - public
         - another
-	    ....
+      ....
+
+##Routes
+
+Since Version 0.3
+
+Use different backends based on request url.
+
+Example:
+
+    seafile.proxy:
+      backend:
+        port: 8000
+        servers:
+        - 10.100.2.91
+        routing:
+          seafhttp:
+            striproute: True      # optional, if set to True the url will be rewritten ( /seafhttp/ to / in this example )
+            backend:
+              port: 8082
+              servers:
+              - 10.100.2.91
 
 #Dependencies
 

@@ -1,0 +1,27 @@
+
+{% if config.options is defined and config.options[0] is defined%}
+{# use options defined for this domain #}
+{% for item in config.options %}
+    {% for key,val in item.iteritems() %}{{ key }} {{ val }}{% endfor %}
+ 
+{% endfor %}
+{% else %}
+{# use default options #}
+{% for item in haproxy_default_backend_options %}
+    {% for key,val in item.iteritems() %}{{ key }} {{ val }}{% endfor %}
+ 
+{% endfor %}
+{% endif %}
+{# rewrites for routing (strip route from request) #}
+{% if config.striproute is defined and route is defined and config.striproute %}
+    # rewrite /{{ route }}/ to /
+    reqrep ^([^\ :]*)\ /{{ route }}/(.*)     \1\ /\2
+{% endif %}{# end: striproutes #}
+{% if config.backend.check is defined and config.backend.check != None %}
+{% set checks = config.backend.check %}
+{% else %}
+{% set checks = haproxy_default_backend_check %}
+{% endif %}
+{% for server in config.backend.servers %}
+    server node{{ loop.index }}.backend.{{ domain }}{{ suffix|default('') }} {{ server }}:{{ config.backend.port|default(haproxy_default_backend_port) }} {{ checks }}
+{% endfor %}

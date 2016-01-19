@@ -19,32 +19,32 @@
 {% endif %}
 {# -- USE DOMAIN: frontent is defined in config or if not defined and __frontend_index 1 (the first one) -- #}
 {% if not config.frontends is defined and __frontend_index == 1%}
-	{% set __use_domain=True %}
+	{% set __use_this_frontend=True %}
 {% elif frontend_name in config.frontends|default([]) %}
-	{% set __use_domain=True %}
+	{% set __use_this_frontend=True %}
 {% else %}
-	{% set __use_domain=False %}
+	{% set __use_this_frontend=False %}
 {% endif %}
 {# -- USE DOMAIN: no frontends defined so use it :) #}
 {% if not haproxy_frontends is defined %} 
-	{% set __use_domain=True %}
+	{% set __use_this_frontend=True %}
 {% endif %}
 
-{%- if __use_domain %}
+{%- if __use_this_frontend %}
 
 {%- if (configure_http and __use_http) or (configure_https and __use_https) %}
 
-    # {{domain}} settings ---------------------------
+    # {{ domain }} settings ---------------------------
 {% if __use_http and configure_http %}
-    acl use-{{domain}} hdr_end(host) -i {{domain}} # host based
+    acl use-{{ domain }} hdr_end(host) -i {{ domain }} # host based
 {% for alias in config.alias|default([]) %}
-    acl use-{{domain}} hdr_end(host) -i {{alias}} # host based
+    acl use-{{ domain }} hdr_end(host) -i {{ alias }} # host based
 {% endfor %}
 {% endif %}
 {% if __use_https and configure_https %}
-    acl use-{{domain}}  ssl_fc_sni {{domain}} # SNI based
+    acl use-{{ domain }}  ssl_fc_sni {{ domain }} # SNI based
 {% for alias in config.alias|default([]) %}
-    acl use-{{domain}}  ssl_fc_sni {{alias}} # SNI based
+    acl use-{{ domain }}  ssl_fc_sni {{ alias }} # SNI based
 {% endfor %}
 {% endif -%}
 
@@ -52,26 +52,34 @@
 {% if haproxy_source_acl is defined -%}
 {% if config.limit_to is defined and config.limit_to[0] is defined %}
 
-    # block unwanted access for {{domain}}
-    http-request deny if use-{{domain}} {% for acl in config.limit_to %}!range-{{acl}} {% endfor %}
+    # block unwanted access for {{ domain }}
+    http-request deny if use-{{ domain }} {% for acl in config.limit_to %}!range-{{acl}} {% endfor %}
 {% endif -%}
 {% endif -%}
 
 
 {%- if __redirect_to_https and configure_http %}
 
-    # redirect {{domain}} to https
-    redirect scheme https code 301 if !{ ssl_fc } use-{{domain}}
+    # redirect {{ domain }} to https
+    redirect scheme https code 301 if !{ ssl_fc } use-{{ domain }}
 {% else %}
 
-    # set backend for {{domain}}
-    use_backend backend.{{domain}} if use-{{domain}}
-{% endif -%} {# __redirect_to_https #}
+    # routes for {{ domain }}
+{% set routingbackends=config.backend.routing|default({}) %}
+{% for route, routeconfig in routingbackends.iteritems() %}
+    acl route-{{ route|replace('/','--') }} path_beg /{{ route }}
+{% endfor -%}  {# end: routingbackends #}
 
-{% endif -%} {# configure_http and __use_http) or (configure_https and __use_https) #}
+    # set backend for {{ domain }}
+{% for route, routeconfig in routingbackends.iteritems() %}
+    use_backend backend.{{ domain }}.{{ route|replace('/','--') }} if use-{{ domain }} route-{{ route|replace('/','--') }}
+{% endfor -%}  {# end: routingbackends #}
+    use_backend backend.{{ domain }} if use-{{ domain }}
+{% endif -%} {# end: __redirect_to_https #}
 
-{% endif -%} {# __use_domain #}
+{% endif -%} {# end: configure_http and __use_http) or (configure_https and __use_https) #}
+
+{% endif -%} {# end: __use_this_frontend #}
 
 {% endfor %}
 
- 
