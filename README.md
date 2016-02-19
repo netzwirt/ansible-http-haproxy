@@ -11,6 +11,7 @@ Just define the domain-names and the backends ip's to configure a reverse proxy.
 - Domain-name or SNI based backend selection
 - Enforce redirects http -> https
 - "Routing" different url's can connect to different backends
+- Special Route for letsecnrypt.org
 
 #Role Variables
 
@@ -90,7 +91,7 @@ And the file must be stored in the directory defined in `haproxy_pem_lookup` (De
 
 ##Multiple frontends
 
-In version 0.2 it's possible to have multiple frontends running with different ip's.
+Since version 0.2 it's possible to have multiple frontends running with different ip's.
 
     haproxy_frontends:
       internal: 
@@ -113,7 +114,7 @@ Bind domains to frontends by adding `frontends` to domain config. If no frontend
 
 ##Routes
 
-Since Version 0.3
+Since version 0.3
 
 Use different backends based on request url.
 
@@ -131,6 +132,22 @@ Example:
               port: 8082
               servers:
               - 10.100.2.91
+
+##Letsencrypt 
+
+Since version 0.4
+
+If you want to use letsencrypt.com to create ssl certificates set `haproxy_letsencrypt_validation` to true.
+
+This will create an path (/.well-known/acme-challenge) based acl.
+
+Request matching this acl will be redirected to the host defined in `haproxy_letsencrypt_validation_server`
+
+For convenience the url's are rewritten:
+
+    http://example.com/.well-known/acme-challenge/111
+    will be rewriten to {{haproxy_letsencrypt_validation_server}}/example.com/.well-known/acme-challenge/111 
+
 
 #Dependencies
 
