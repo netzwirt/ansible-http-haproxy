@@ -1,85 +1,160 @@
 
-{% if haproxy_source_acl is defined %}
+
+{% if True %}
+
+    # ------------------- ACL's---------------------------------------
+{% endif %}
+
+
+{%- if haproxy_source_acl is defined %}
     # acl ranges 
-{% for name,config in haproxy_source_acl.iteritems() %}
+	{%- for name,config in haproxy_source_acl.iteritems() %}
+
     acl range-{{name}} src {% for ip in config %}{{ip}} {% endfor %}
+	{% endfor %}
+{% endif -%}
 
-{% endfor %}
-{% endif %}
 
-{# -- LOOP ALL DOMAINS -- #}
+
+
+{# #### acl for letsencrypt route ############################ #}
+
+{% if haproxy_letsencrypt_validation %}
+
+    # acl route for letsencrypt validation files
+    acl route-letsencrypt path_beg /.well-known/acme-challenge
+{% endif -%}
+
+
+
+
+{# #### host name based acl's ################################ #}
+
+    # host based acl list
 {% for domain, config in haproxy_domains.iteritems() %}
+    acl use-{{ domain }}{% if __configure_https %} ssl_fc_sni{% else %} hdr_end(host) -i{% endif %} {{ domain }}
+    {%- for alias in config.alias | default([]) %} {{ alias }}{% endfor %}
+
+{% endfor -%}
+
+
+
+
+{# #### uri based acl's ###################################### #}
+
+{% for domain, config in haproxy_domains.iteritems() %}
+{% set routingbackends=config.backend.routing|default({}) %}
+
+    # uri based acl list (routes) for {{ domain }}
+{% for route, routeconfig in routingbackends.iteritems() %}
+    acl route-{{ route|replace('/','--') }}-{{ domain }} path_beg /{{ route }}
+{% endfor -%}
+{% endfor -%}
+
+
+
+{% if True %}
+
+    # ------------------- limit access -------------------------------
+{% endif %}
+
+
+
+{%- for domain, config in haproxy_domains.iteritems() %}
+	{% if haproxy_source_acl is defined -%}
+		{% if config.limit_to is defined and config.limit_to[0] is defined %}
+		
+    # limit access for {{ domain }}
+    http-request deny if use-{{ domain }} {% for acl in config.limit_to %}!range-{{acl}} {% endfor %}{% if haproxy_letsencrypt_validation %}!route-letsencrypt{% endif %}
+    
+		{% endif -%}
+	{% endif -%}
+
+{% endfor -%}
+
+
+{% if __configure_http %}
+
+    # ------------------- force https --------------------------------
+
+
+{%- for domain, config in haproxy_domains.iteritems() %}
 {# -- SET VARIABLES -- #}
-{% set __use_http=config.http|default(haproxy_default_http) %}
-{% set __use_https=config.https|default(haproxy_default_https) %}
+{% set __use_http=config.http | default(haproxy_default_http) %}
+{% set __use_https=config.https | default(haproxy_default_https) -%}
+
 {% if config.redirect is defined and config.redirect != None and __use_https and __use_http %}
-{% set __redirect_to_https=True %}
+	{% set __redirect_to_https=True %}
 {% else %}
-{% set __redirect_to_https=False %}
-{% endif %}
+	{% set __redirect_to_https=False %}
+{% endif -%}
+
 {# -- USE DOMAIN: frontent is defined in config or if not defined and __frontend_index 1 (the first one) -- #}
-{% if not config.frontends is defined and __frontend_index == 1%}
-	{% set __use_this_frontend=True %}
-{% elif frontend_name in config.frontends|default([]) %}
-	{% set __use_this_frontend=True %}
+{% if not config.frontends is defined and __frontend_index == 1 %}
+	{% set __use_frontend=True %}
+{% elif frontend_name in config.frontends | default([]) %}
+	{% set __use_frontend=True %}
 {% else %}
-	{% set __use_this_frontend=False %}
-{% endif %}
-{# -- USE DOMAIN: no frontends defined so use it :) #}
+	{% set __use_frontend=False %}
+{% endif -%}
+
+{# -- USE DOMAIN: no frontends defined so use it :) -- #}
 {% if not haproxy_frontends is defined %} 
-	{% set __use_this_frontend=True %}
-{% endif %}
-
-{%- if __use_this_frontend %}
-
-{%- if (configure_http and __use_http) or (configure_https and __use_https) %}
-
-    # {{ domain }} settings ---------------------------
-{% if __use_http and configure_http %}
-    acl use-{{ domain }} hdr_end(host) -i {{ domain }} # host based
-{% for alias in config.alias|default([]) %}
-    acl use-{{ domain }} hdr_end(host) -i {{ alias }} # host based
-{% endfor %}
-{% endif %}
-{% if __use_https and configure_https %}
-    acl use-{{ domain }}  ssl_fc_sni {{ domain }} # SNI based
-{% for alias in config.alias|default([]) %}
-    acl use-{{ domain }}  ssl_fc_sni {{ alias }} # SNI based
-{% endfor %}
+	{% set __use_frontend=True %}
 {% endif -%}
 
-
-{% if haproxy_source_acl is defined -%}
-{% if config.limit_to is defined and config.limit_to[0] is defined %}
-
-    # block unwanted access for {{ domain }}
-    http-request deny if use-{{ domain }} {% for acl in config.limit_to %}!range-{{acl}} {% endfor %}
-{% endif -%}
-{% endif -%}
-
-
-{%- if __redirect_to_https and configure_http %}
+{%- if __redirect_to_https  %}
 
     # redirect {{ domain }} to https
     redirect scheme https code 301 if !{ ssl_fc } use-{{ domain }}
-{% else %}
+    
+{% endif -%}
+{% endfor -%}
+{% endif -%}
 
-    # routes for {{ domain }}
-{% set routingbackends=config.backend.routing|default({}) %}
-{% for route, routeconfig in routingbackends.iteritems() %}
-    acl route-{{ route|replace('/','--') }} path_beg /{{ route }}
-{% endfor -%}  {# end: routingbackends #}
+
+{% if True %}
+
+    # ------------------- backend selection --------------------------
+{% endif %}
+
+
+
+{%- for domain, config in haproxy_domains.iteritems() %}
+{# -- SET VARIABLES -- #}
+{% set __use_http=config.http | default(haproxy_default_http) %}
+{% set __use_https=config.https | default(haproxy_default_https) -%}
+
+{# -- USE DOMAIN: frontent is defined in config or if not defined and __frontend_index 1 (the first one) -- #}
+{% if not config.frontends is defined and __frontend_index == 1 %}
+	{% set __use_frontend=True %}
+{% elif frontend_name in config.frontends | default([]) %}
+	{% set __use_frontend=True %}
+{% else %}
+	{% set __use_frontend=False %}
+{% endif -%}
+
+{# -- USE DOMAIN: no frontends defined so use it :) -- #}
+{% if not haproxy_frontends is defined %} 
+	{% set __use_frontend=True %}
+{% endif -%}
+
+{% set routingbackends=config.backend.routing|default({}) -%}
+
+
+{% if __use_frontend and ( ( __configure_http and __use_http) or ( __configure_https and __use_https) ) %}
 
     # set backend for {{ domain }}
-{% for route, routeconfig in routingbackends.iteritems() %}
-    use_backend backend.{{ domain }}.{{ route|replace('/','--') }} if use-{{ domain }} route-{{ route|replace('/','--') }}
-{% endfor -%}  {# end: routingbackends #}
+{%- for route, routeconfig in routingbackends.iteritems() %}
+
+    use_backend backend.{{ domain }}.{{ route|replace('/','--') }} if use-{{ domain }} route-{{ route|replace('/','--') }}-{{ domain }}
+{%- endfor %}  
     use_backend backend.{{ domain }} if use-{{ domain }}
-{% endif -%} {# end: __redirect_to_https #}
+{% endif %}
 
-{% endif -%} {# end: configure_http and __use_http) or (configure_https and __use_https) #}
+{% endfor -%}
 
-{% endif -%} {# end: __use_this_frontend #}
 
-{% endfor %}
+
+
 

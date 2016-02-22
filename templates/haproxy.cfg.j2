@@ -9,6 +9,9 @@ global
     group haproxy
     daemon
 
+    tune.ssl.default-dh-param 2048
+
+
 defaults
     log global
     mode http
@@ -27,6 +30,7 @@ defaults
     errorfile 502 /etc/haproxy/errors/502.http
     errorfile 503 /etc/haproxy/errors/503.http
     errorfile 504 /etc/haproxy/errors/504.http
+    
 
 {% if haproxy_stats_users is defined and haproxy_stats_users[0] is defined %}
     stats enable
@@ -53,8 +57,8 @@ defaults
 frontend http-{{frontend_name}}
     bind {{ frontend_config.bind_address }}:80
     mode http
-	{% set configure_http=true %}
-	{% set configure_https=false %}
+	{% set __configure_http=true %}
+	{% set __configure_https=false %}
 	{%- include "domains.j2" %}
 
 {% if __certificates != '' %}
@@ -63,8 +67,8 @@ frontend http-{{frontend_name}}
 frontend https-{{ frontend_name }}
     bind {{ frontend_config.bind_address }}:443 ssl {{ __certificates }}
     mode http
-	{% set configure_http=false %}
-	{% set configure_https=true %}
+	{% set __configure_http=false %}
+	{% set __configure_https=true %}
 	{%- include "domains.j2" %}
 {% endif -%}
 
@@ -74,8 +78,8 @@ frontend https-{{ frontend_name }}
 ##################################################
 {# ---- backends for default route / ---- #}
 
+# default domain backends ########################
 {% for domain, config in haproxy_domains.iteritems() %}
-
 
 ##### backend for domain: {{ domain }} #####
 backend backend.{{ domain }}
@@ -83,14 +87,12 @@ backend backend.{{ domain }}
 {% include "backends.j2" %}
 {% endfor %}
 
-{# ---- backends with special routes ---- #}
-{# -- loop trough routes an include backend again #}
+# special routes #################################
 
+{# -- loop trough routes an include backend again #}
 {% for domain, masterconfig in haproxy_domains.iteritems() %}
 {% set routingbackends=masterconfig.backend.routing|default({}) %}
 {% for route, config in routingbackends.iteritems() %}
-
-
 ##### backend for domain: {{ domain }} route: /{{ route }} #####
 {% set suffix='.' + route|replace('/','--') %}
 backend backend.{{ domain }}{{ suffix }}
@@ -98,3 +100,17 @@ backend backend.{{ domain }}{{ suffix }}
 {% include "backends.j2" %}
 {% endfor %}
 {% endfor %}
+
+# letsencrypt route ################################
+
+{# -- letsencrypt special backend -- #}
+{% for domain, masterconfig in haproxy_domains.iteritems() %}
+{% if haproxy_letsencrypt_validation %}
+##### backend for domain: {{ domain }} letsencrypt validation
+backend backend.letsencrypt-{{ domain }}
+   mode http
+   reqrep ^([^\ :]*)\ /.well-known/acme-challenge/(.*)     \1\ /{{ domain}}/.well-known/acme-challenge/\2
+   server node1.backend.letsencrypt-{{ domain }} {{ haproxy_letsencrypt_validation_server }} check
+{% endif  %}
+{% endfor %}
+

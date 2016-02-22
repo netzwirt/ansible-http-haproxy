@@ -9,9 +9,5 @@ haproxy_stats_users: []
   
 haproxy_pem_lookup: "{{inventory_dir}}/certs/"
 
-#haproxy_frontends:
-#  internal: 
-#    bind_address: 10.01.01.1
-#  public: 
-#    bind_address: 23.66.77.88
-    
+haproxy_letsencrypt_validation: False
+haproxy_letsencrypt_validation_server: 127.0.0.1:8080
