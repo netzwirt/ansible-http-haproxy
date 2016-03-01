@@ -9,5 +9,16 @@ haproxy_stats_users: []
   
 haproxy_pem_lookup: "{{inventory_dir}}/certs/"
 
+
+# letsencrypt required 
 haproxy_letsencrypt_validation: False
 haproxy_letsencrypt_validation_server: 127.0.0.1:8080
+
+
+# galera/percona cluster proxy
+haproxy_mysql_cluster: False
+haproxy_mysql_nodes: []
+haproxy_mysql_listen_ip: 127.0.0.1
+haproxy_mysql_listen_port: 3306
+haproxy_mysql_check_type: mysql # mysql or http
+haproxy_mysql_check_port: 9200 # only required for haproxy_mysql_check_type = http
