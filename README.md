@@ -11,7 +11,8 @@ Just define the domain-names and the backends ip's to configure a reverse proxy.
 - Domain-name or SNI based backend selection
 - Enforce redirects http -> https
 - "Routing" different url's can connect to different backends
-- Special Route for letsecnrypt.org
+- Special Route for letsecnrypt.org (since 0.4)
+- Templae for galera-cluster (since 0.5)
 
 #Role Variables
 
@@ -147,6 +148,25 @@ For convenience the url's are rewritten:
 
     http://example.com/.well-known/acme-challenge/111
     will be rewriten to {{haproxy_letsencrypt_validation_server}}/example.com/.well-known/acme-challenge/111 
+
+
+##Galera cluster
+
+Since version 0.5
+
+Create a haproxy listen-config for a MySQL cluster (@see templates/galera-cluster.j2)
+
+Enable template by setting `haproxy_mysql_cluster` to True.
+
+List all MySQL nodes in `haproxy_mysql_nodes`
+
+Set ip and port with `haproxy_mysql_listen_ip` and `haproxy_mysql_listen_port`
+
+There are two check methods: mysql or http (`haproxy_mysql_check_type`)
+- mysql : check connection directly via mysql-port
+- http : check mysql over xinetd -> script (@see https://github.com/netzwirt/ansible-galera-cluster)
+
+`haproxy_mysql_check_port`is onnly required when check method http is used.
 
 
 #Dependencies
