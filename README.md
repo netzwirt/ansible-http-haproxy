@@ -12,7 +12,7 @@ Just define the domain-names and the backends ip's to configure a reverse proxy.
 - Enforce redirects http -> https
 - "Routing" different url's can connect to different backends
 - Special Route for letsecnrypt.org (since 0.4)
-- Templae for galera-cluster (since 0.5)
+- Templae for galera-cluster (since 0.4)
 
 #Role Variables
 
@@ -152,7 +152,7 @@ For convenience the url's are rewritten:
 
 ##Galera cluster
 
-Since version 0.5
+Since version 0.4
 
 Create a haproxy listen-config for a MySQL cluster (@see templates/galera-cluster.j2)
 
