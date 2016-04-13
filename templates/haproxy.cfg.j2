@@ -114,3 +114,8 @@ backend backend.letsencrypt-{{ domain }}
 {% endif  %}
 {% endfor %}
 
+
+{% if haproxy_mysql_cluster and haproxy_mysql_nodes[0] is defined %}
+{% include "galera-cluster.j2" %}
+{% endif %}
+

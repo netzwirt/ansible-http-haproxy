@@ -1,0 +1,23 @@
+
+
+# mysql frontend ###################################
+
+listen mysql-cluster {{ haproxy_mysql_listen_ip }}:{{ haproxy_mysql_listen_port }}
+    balance leastconn
+    mode tcp
+{% if haproxy_mysql_check_type == 'mysql' %}
+    option mysql-check user haproxy
+    
+{% for ip in haproxy_mysql_nodes %}
+    server mysql-node-{{ loop.index }} {{ ip }}:3306 check
+{% endfor %}
+{% endif -%}
+
+
+{% if haproxy_mysql_check_type == 'http' %}
+    option httpchk
+{% for ip in haproxy_mysql_nodes %}
+    server mysql-node-{{ loop.index }} {{ ip }}:3306 check port {{ haproxy_mysql_check_port }} inter 5000 fastinter 2000 rise 2 fall 2
+{% endfor %}
+{% endif %}
+
