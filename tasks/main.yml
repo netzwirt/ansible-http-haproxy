@@ -4,25 +4,27 @@
 
 - name:  add haproxy apt repo for wheezy
   apt_repository: 
-    repo="deb http://httpredir.debian.org/debian wheezy-backports main" 
-    state=present 
-    update_cache=yes
+    repo: "deb http://httpredir.debian.org/debian wheezy-backports main" 
+    state: present 
+    update_cache: yes
   when: ansible_distribution_release == "wheezy"
   
 - name: add haproxy apt repo
   apt_repository: 
-    repo="ppa:vbernat/haproxy-1.5" 
-    state=present 
-    update_cache=yes
+    repo: "ppa:vbernat/haproxy-1.5" 
+    state: present 
+    update_cache: yes
   when: ansible_distribution == "Ubuntu"
 
 - name: update apt-cache
   apt: 
-    update_cache=yes 
-    cache_valid_time=3600      
+    update_cache: yes 
+    cache_valid_time: 3600      
     
 - name: install packages
-  apt: pkg={{ item }} state=latest
+  apt: 
+    pkg: "{{ item }}" 
+    state: latest
   with_items:
     - haproxy
     - socat
@@ -30,31 +32,32 @@
 
 - name: enable init script
   replace: 
-    dest='/etc/default/haproxy' 
-    regexp='ENABLED=0'
-    replace='ENABLED=1'
+    dest: /etc/default/haproxy
+    regexp: 'ENABLED=0'
+    replace: 'ENABLED=1'
 
 - name: create certs directory
   file: 
-    path=/etc/haproxy/certs
-    state=directory 
-    mode=0755 
-    owner=root
+    path: /etc/haproxy/certs
+    state: directory 
+    mode: 0755 
+    owner: root
   
 - name: copy pem files
   copy:
-    src={{haproxy_certs_lookup}}/{{item.key}}.pem
-    dest=/etc/haproxy/certs/{{item.key}}.pem
-    owner=haproxy
-    group=haproxy
-  notify: [restart haproxy]
+    src: "{{haproxy_certs_lookup}}/{{item.key}}.pem"
+    dest: "/etc/haproxy/certs/{{item.key}}.pem"
+    owner: haproxy
+    group: haproxy
+  notify: 
+  - restart haproxy
   when: item.value.https|default(haproxy_default_https)
   with_dict: haproxy_domains
   
   
 - name: update config
   template: 
-    src=haproxy.cfg.j2
-    dest=/etc/haproxy/haproxy.cfg 
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg 
   notify: 
-    - restart haproxy
+  - restart haproxy
