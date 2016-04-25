@@ -9,6 +9,7 @@ haproxy_stats_users: []
   
 haproxy_pem_lookup: "{{inventory_dir}}/certs/"
 
+haproxy_listen: []
 
 # letsencrypt required 
 haproxy_letsencrypt_validation: False
