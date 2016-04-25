@@ -1,0 +1,13 @@
+
+
+# tcp listeners ####################################
+
+{% for config in haproxy_tcp_listen %}
+listen {{ config.name }} {{ config.bind_address }}:{{ config.bind_port }}
+    balance leastconn
+    mode tcp
+    option tcplog
+{% for backend_ip in config.backend.servers %}
+    server {{ config.name }}-node-{{ loop.index }} {{ backend_ip }}:{{ config.backend.port }} {{ config.backend.check }}
+{% endfor %}
+{% endfor %}
