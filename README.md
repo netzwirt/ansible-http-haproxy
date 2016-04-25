@@ -10,15 +10,15 @@ Just define the domain-names and the backends ip's to configure a reverse proxy.
 - ACL's 
 - Domain-name or SNI based backend selection
 - Enforce redirects http -> https
-- "Routing" different url's can connect to different backends
+- "Routing": different url's can connect to different backends
 - Special Route for letsecnrypt.org (since 0.4)
-- Templae for galera-cluster (since 0.4)
+- Template for galera-cluster (since 0.4)
 
 #Role Variables
 
 ##Named acl's `haproxy_source_acl`
 
-A dictionary containing { acl-name : list with ip-ranges } which can be used for access control in the frontend.
+A dictionary containing { acl-name : list with ip-ranges } which can be used for access control in frontends.
 
 Example:
 
@@ -167,6 +167,25 @@ There are two check methods: mysql or http (`haproxy_mysql_check_type`)
 - http : check mysql over xinetd -> script (@see https://github.com/netzwirt/ansible-galera-cluster)
 
 `haproxy_mysql_check_port`is onnly required when check method http is used.
+
+
+##TCP listeners
+
+Since version 0.5 
+
+Simple tcp forwarding:
+
+Config example (forward 10.10.10.10:2022 to 22.33.44.55:22):
+
+    haproxy_tcp_listen:
+    - name: sftp-server
+      bind_address: 10.10.10.10
+      bind_port: 2022
+      backend:
+        port: 22
+        check: ''
+        servers:
+        - 22.33.44.55
 
 
 #Dependencies

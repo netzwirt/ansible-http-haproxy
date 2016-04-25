@@ -119,3 +119,7 @@ backend backend.letsencrypt-{{ domain }}
 {% include "galera-cluster.j2" %}
 {% endif %}
 
+{% if haproxy_tcp_listen and haproxy_tcp_listen[0] is defined %}
+{% include "haproxy-listen.j2" %}
+{% endif %}
+
