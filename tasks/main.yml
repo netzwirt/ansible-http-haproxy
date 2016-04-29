@@ -1,14 +1,14 @@
 ---
 # tasks file for netzwirt.http-haproxy
 
-
 - name:  add haproxy apt repo for wheezy
   apt_repository: 
     repo: "deb http://httpredir.debian.org/debian wheezy-backports main" 
     state: present 
     update_cache: yes
   when: ansible_distribution_release == "wheezy"
-  
+
+
 - name: add haproxy apt repo
   apt_repository: 
     repo: "ppa:vbernat/haproxy-1.5" 
@@ -16,11 +16,13 @@
     update_cache: yes
   when: ansible_distribution == "Ubuntu"
 
+
 - name: update apt-cache
   apt: 
     update_cache: yes 
     cache_valid_time: 3600      
-    
+
+
 - name: install packages
   apt: 
     pkg: "{{ item }}" 
@@ -30,11 +32,13 @@
     - socat
   when: ansible_os_family == 'Debian'
 
+
 - name: enable init script
   replace: 
     dest: /etc/default/haproxy
     regexp: 'ENABLED=0'
     replace: 'ENABLED=1'
+
 
 - name: create certs directory
   file: 
@@ -42,7 +46,8 @@
     state: directory 
     mode: 0755 
     owner: root
-  
+
+
 - name: copy pem files
   copy:
     src: "{{haproxy_certs_lookup}}/{{item.key}}.pem"
