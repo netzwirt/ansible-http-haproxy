@@ -52,7 +52,7 @@
   notify: 
   - restart haproxy
   when: item.value.https|default(haproxy_default_https)
-  with_dict: haproxy_domains
+  with_dict: "{{ haproxy_domains }}"
   
   
 - name: update config
