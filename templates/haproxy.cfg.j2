@@ -111,7 +111,7 @@ backend backend.{{ domain }}{{ suffix }}
 backend backend.letsencrypt-{{ domain }}
    mode http
    reqrep ^([^\ :]*)\ /.well-known/acme-challenge/(.*)     \1\ /{{ domain}}/.well-known/acme-challenge/\2
-   server node1.backend.letsencrypt-{{ domain }} {{ haproxy_letsencrypt_validation_server }} check
+   server node1.backend.letsencrypt-{{ domain }} {{ haproxy_letsencrypt_validation_server }} 
 {% endif  %}
 {% endfor %}
 

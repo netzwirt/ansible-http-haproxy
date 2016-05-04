@@ -106,7 +106,7 @@
 {%- if __redirect_to_https  %}
 
     # redirect {{ domain }} to https
-    redirect scheme https code 301 if !{ ssl_fc } use-{{ domain }}
+    redirect scheme https code 301 if !{ ssl_fc } use-{{ domain }} {% if haproxy_letsencrypt_validation %}!route-letsencrypt{% endif %}
     
 {% endif -%}
 {% endfor -%}
@@ -145,6 +145,13 @@
 {% if __use_frontend and ( ( __configure_http and __use_http) or ( __configure_https and __use_https) ) %}
 
     # set backend for {{ domain }}
+{# -- letsencrypt special backend -- #}
+{% if haproxy_letsencrypt_validation %}
+
+    # redirect to letsencrypt validation server
+    use_backend backend.letsencrypt-{{ domain }} if use-{{ domain }} route-letsencrypt
+{% endif  %}
+{# -- define backends for other url based routes -- #}
 {%- for route, routeconfig in routingbackends.iteritems() %}
 
     use_backend backend.{{ domain }}.{{ route|replace('/','--') }} if use-{{ domain }} route-{{ route|replace('/','--') }}-{{ domain }}
@@ -153,8 +160,5 @@
 {% endif %}
 
 {% endfor -%}
-
-
-
 
 
