@@ -110,8 +110,10 @@ backend backend.{{ domain }}{{ suffix }}
 ##### backend for domain: {{ domain }} letsencrypt validation
 backend backend.letsencrypt-{{ domain }}
    mode http
+   # make dirty shellscript work
+   no option checkcache
    reqrep ^([^\ :]*)\ /.well-known/acme-challenge/(.*)     \1\ /{{ domain}}/.well-known/acme-challenge/\2
-   server node1.backend.letsencrypt-{{ domain }} {{ haproxy_letsencrypt_validation_server }} 
+   server node1.backend.letsencrypt-{{ domain }} {{ haproxy_letsencrypt_bind_address }}:{{ haproxy_letsencrypt_port }}
 {% endif  %}
 {% endfor %}
 

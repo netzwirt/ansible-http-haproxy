@@ -66,3 +66,8 @@
     dest: /etc/haproxy/haproxy.cfg 
   notify: 
   - restart haproxy
+
+
+# include poor mans server
+- include: 'letsencrypt.yml'
+  when: haproxy_letsencrypt_validation and haproxy_letsencrypt_install_service

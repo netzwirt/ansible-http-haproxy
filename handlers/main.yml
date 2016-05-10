@@ -3,5 +3,10 @@
 
 - name: restart haproxy
   service: 
-    name=haproxy 
-    state=restarted
+    name: haproxy 
+    state: restarted
+
+- name: restart xinetd
+  service: 
+    name: haproxy 
+    state: restarted

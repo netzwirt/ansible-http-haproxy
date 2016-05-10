@@ -1,0 +1,75 @@
+#!/bin/bash
+#
+# {{ ansible_managed }}
+#
+# NEVER USE ON A PUBLIC IP!
+#
+# helper script for letsencrypt domain validation
+#
+
+
+WEBROOT={{ haproxy_letsencrypt_webroot }}
+
+read request
+
+while /bin/true; do
+    read header
+    [ "$header" == $'\r' ] && break;
+    if [ ${header:0:4} = "Host" ] ; then
+        IFS=':' read -ra HOST <<< "$header"
+        HOST=${HOST[1]}
+    fi
+done
+
+FILE="${request#GET }"
+FILE="${FILE% HTTP/*}"
+IFS='/' read -ra FILE <<< "$FILE"
+FILE="${FILE[-1]}"
+
+HOST=`echo $HOST | sed "s/[^[:alpha:][0-9]-]//g" | sed 's/[ \n\r]//g'`
+FILE=`echo $FILE | sed "s/[^[:alpha:][0-9]-]//g" | sed 's/[ \n\r]//g'`
+
+function send404 {
+    echo -e "HTTP/1.1 404 Not Found\r"
+    echo -e "Content-Type: text/html\r"
+    echo -e "\r"
+    echo -e "<h1>404</h1>Not Found\r"
+    echo ""
+    echo "<br> $FILE"
+    echo -e "\r"
+    exit 0
+}
+
+# check if webroot exists
+if [ -d ${WEBROOT} ] ; then
+    cd  ${WEBROOT}
+else
+    send404
+fi
+
+# check if domain exists
+if [ -d ${HOST} ] ; then
+    cd  ${HOST}
+else
+    send404
+fi
+
+# check if challenge dir exists
+if [ -d .well-known/acme-challenge ] ; then
+    cd  .well-known/acme-challenge
+else
+    send404
+fi
+
+# check if file exists
+if [ -f ${FILE} ] ; then
+    echo -e "HTTP/1.1 200 OK\r"
+    echo -e "Content-Type: text/plain\r"
+    echo -e "\r"
+    cat ${FILE}
+    echo -e "\r"
+else
+    send404
+fi
+
+exit 0

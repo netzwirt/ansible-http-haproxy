@@ -1,0 +1,43 @@
+---
+# tasks file for netzwirt.http-haproxy
+
+- name: install xinetd
+  apt: 
+    pkg: xinetd
+    state: latest
+    update_cache: yes 
+    cache_valid_time: 3600     
+
+
+- name: register letsencrypt script as a service
+  lineinfile: 
+    dest: /etc/services
+    regexp: '^letsencrypt'
+    line: "letsencrypt     {{ haproxy_letsencrypt_port }}/tcp                        # Local letsencrypt server"
+
+
+- name: install server script
+  template: 
+    src: letsencrypt-server.sh.j2
+    dest: "{{ haproxy_home }}/letsencrypt"
+    owner: "{{ haproxy_user }}"
+    group: "{{ haproxy_user }}"
+    mode: 0700
+  notify: 
+
+  
+- name: update xinetd config
+  template: 
+    src: letsencrypt-xinet.d.j2
+    dest: /etc/xinetd.d/letsencrypt
+  notify: 
+  - restart xinetd
+
+
+- name: check letsencrypt webroot
+  file: 
+    name: "{{ haproxy_letsencrypt_webroot }}"
+    owner: "{{ haproxy_user }}"
+    group: root
+    mode: 0750
+    state: directory

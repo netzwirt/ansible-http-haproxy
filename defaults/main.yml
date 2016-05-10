@@ -13,8 +13,10 @@ haproxy_listen: []
 
 # letsencrypt required 
 haproxy_letsencrypt_validation: False
-haproxy_letsencrypt_validation_server: 127.0.0.1:8080
-
+haproxy_letsencrypt_port: 2021
+haproxy_letsencrypt_bind_address: 127.0.0.1 # do not bind to a public ip!!
+haproxy_letsencrypt_webroot: '/var/www/letsencrypt'
+haproxy_letsencrypt_install_service: False
 
 # galera/percona cluster proxy
 haproxy_mysql_cluster: False

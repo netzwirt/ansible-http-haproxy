@@ -1,6 +1,9 @@
 ---
 # vars file for netzwirt.http-haproxy
 
+haproxy_home: "/var/lib/haproxy"
+haproxy_user: "haproxy"
+
 # default backend options
 haproxy_default_backend_options:
 - balance: leastconn

@@ -1,0 +1,18 @@
+# default: on
+# description: Poor man’s http server for letsencrypt acme-challenge
+#
+# NEVER EXPOSE ON A PUBLIC IP!
+#
+# {{ ansible_managed }}
+#
+service letsencrypt
+{
+    flags       = REUSE
+    socket_type = stream
+    wait        = no
+    user        = {{ haproxy_user }}
+    server      = {{ haproxy_home }}/letsencrypt
+    disable     = yes
+    port        = {{ haproxy_letsencrypt_port }}
+    bind        = {{ haproxy_letsencrypt_bind_address }}
+}
