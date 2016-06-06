@@ -94,6 +94,8 @@ And the file must be stored in the directory defined in `haproxy_pem_lookup` (De
 
 Since version 0.2 it's possible to have multiple frontends running with different ip's.
 
+Added option stats in version 0.6.
+
     haproxy_frontends:
       internal: 
         bind_address: 10.100.2.30
@@ -101,6 +103,7 @@ Since version 0.2 it's possible to have multiple frontends running with differen
         bind_address: 10.100.2.33
       another: 
         bind_address: 10.100.2.34  
+        stats: True
 
 Bind domains to frontends by adding `frontends` to domain config. If no frontend is defined for a domain it will listen on the first one defined in `haproxy_frontends`
 

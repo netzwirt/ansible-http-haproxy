@@ -31,15 +31,6 @@ defaults
     errorfile 503 /etc/haproxy/errors/503.http
     errorfile 504 /etc/haproxy/errors/504.http
     
-
-{% if haproxy_stats_users is defined and haproxy_stats_users[0] is defined %}
-    stats enable
-    stats uri {{ haproxy_stats_uri }}
-    stats realm Strictly\ Private
-{% for user in haproxy_stats_users %}
-    stats auth {{ user.username }}:{{ user.password }}
-{% endfor %}
-{% endif %}
     
 {% if haproxy_frontends is defined %} 
 {% set haproxy_configure_frontends = haproxy_frontends %}
@@ -58,6 +49,7 @@ frontend http-{{frontend_name}}
     bind {{ frontend_config.bind_address }}:80
     mode http
     option forwardfor
+    {% include "stats.j2" %}
 	{% set __configure_http=true %}
 	{% set __configure_https=false %}
 	{%- include "domains.j2" %}
@@ -69,6 +61,7 @@ frontend https-{{ frontend_name }}
     bind {{ frontend_config.bind_address }}:443 ssl {{ __certificates }}
     mode http
     option forwardfor
+    {% include "stats.j2" %}
 	{% set __configure_http=false %}
 	{% set __configure_https=true %}
 	{%- include "domains.j2" %}

@@ -1,0 +1,12 @@
+{# enable stats #}
+
+{% if frontend_config.stats is defined and frontend_config.stats %}
+    stats enable
+{% if haproxy_stats_users is defined and haproxy_stats_users[0] is defined %}
+    stats uri {{ haproxy_stats_uri }}
+    stats realm Strictly\ Private
+{% for user in haproxy_stats_users %}
+    stats auth {{ user.username }}:{{ user.password }}
+{% endfor %}
+{% endif %}
+{% endif %}
