@@ -6,6 +6,12 @@ listen mysql-cluster {{ haproxy_mysql_listen_ip }}:{{ haproxy_mysql_listen_port 
     balance leastconn
     mode tcp
     option tcplog
+{# options from config #}
+{% if haproxy_mysql_cluster_options is defined and haproxy_mysql_cluster_options[0] is defined %}
+{% for opt in haproxy_mysql_cluster_options %}
+    {{ opt }}
+{% endfor %}
+{% endif %}
 {% if haproxy_mysql_check_type == 'mysql' %}
     option mysql-check user haproxy
     
@@ -29,6 +35,12 @@ listen mysql-cluster-readonly {{ haproxy_mysql_listen_ip }}:{{ haproxy_mysql_lis
     balance leastconn
     mode tcp
     option tcplog
+{# options from config #}
+{% if haproxy_mysql_cluster_options is defined and haproxy_mysql_cluster_options[0] is defined %}
+{% for opt in haproxy_mysql_cluster_options %}
+    {{ opt }}
+{% endfor %}
+{% endif %}
 {% if haproxy_mysql_check_type == 'mysql' %}
     option mysql-check user haproxy
     

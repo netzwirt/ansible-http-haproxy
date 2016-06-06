@@ -7,6 +7,12 @@ listen {{ config.name }} {{ config.bind_address }}:{{ config.bind_port }}
     balance leastconn
     mode tcp
     option tcplog
+{# options from config #}
+{% if config.options is defined and config.options[0] is defined %}
+{% for opt in config.options %}
+    {{ opt }}
+{% endfor %}
+{% endif %}
 {% for backend_ip in config.backend.servers %}
     server {{ config.name }}-node-{{ loop.index }} {{ backend_ip }}:{{ config.backend.port }} {{ config.backend.check }}
 {% endfor %}

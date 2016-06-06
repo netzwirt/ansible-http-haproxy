@@ -173,6 +173,8 @@ There are two check methods: mysql or http (`haproxy_mysql_check_type`)
 
 Since version 0.5 
 
+Added `options` in version 0.6.
+
 Simple tcp forwarding:
 
 Config example (forward 10.10.10.10:2022 to 22.33.44.55:22):
@@ -181,6 +183,9 @@ Config example (forward 10.10.10.10:2022 to 22.33.44.55:22):
     - name: sftp-server
       bind_address: 10.10.10.10
       bind_port: 2022
+      options:
+      - 'server timeout 60000'
+      - 'client timeout 120000'
       backend:
         port: 22
         check: ''
