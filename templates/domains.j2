@@ -32,7 +32,7 @@
 
     # host based acl list
 {% for domain, config in haproxy_domains.iteritems() %}
-    acl use-{{ domain }}{% if __configure_https %} ssl_fc_sni{% else %} hdr_end(host) -i{% endif %} {{ domain }}
+    acl use-{{ domain }}{% if __configure_https %} ssl_fc_sni{% else %} hdr_dom(host) -i{% endif %} {{ domain }}
     {%- for alias in config.alias | default([]) %} {{ alias }}{% endfor %}
 
 {% endfor -%}
@@ -48,6 +48,19 @@
     # uri based acl list (routes) for {{ domain }}
 {% for route, routeconfig in routingbackends.iteritems() %}
     acl route-{{ route|replace('/','--') }}-{{ domain }} path_beg /{{ route }}
+{% endfor -%}
+{% endfor -%}
+
+
+
+{# #### port based acl's ###################################### #}
+
+{% for domain, config in haproxy_domains.iteritems() %}
+{% set mappingbackends=config.backend.portmapping|default([]) %}
+
+    # port based acl list (portmapping) for {{ domain }}
+{% for portconfig in mappingbackends %}
+    acl mapping-{{ portconfig['port'] }}-{{ domain }} dst_port {{ portconfig['port'] }}
 {% endfor -%}
 {% endfor -%}
 
@@ -140,6 +153,7 @@
 {% endif -%}
 
 {% set routingbackends=config.backend.routing|default({}) -%}
+{% set mappingbackends=config.backend.portmapping|default([]) %}
 
 
 {% if __use_frontend and ( ( __configure_http and __use_http) or ( __configure_https and __use_https) ) %}
@@ -150,12 +164,17 @@
 
     # redirect to letsencrypt validation server
     use_backend backend.letsencrypt-{{ domain }} if use-{{ domain }} route-letsencrypt
-{% endif  %}
+{% endif  %} {# end haproxy_letsencrypt_validation #}
 {# -- define backends for other url based routes -- #}
 {%- for route, routeconfig in routingbackends.iteritems() %}
 
     use_backend backend.{{ domain }}.{{ route|replace('/','--') }} if use-{{ domain }} route-{{ route|replace('/','--') }}-{{ domain }}
-{%- endfor %}  
+{%- endfor %} 
+{# -- define backends for port mapping -- #}
+{% for portconfig in mappingbackends %}
+
+    use_backend backend.{{ domain }}.port-{{ portconfig['port'] }} if use-{{ domain }} mapping-{{ portconfig['port'] }}-{{ domain }}
+{%- endfor %}   
     use_backend backend.{{ domain }} if use-{{ domain }}
 {% endif %}
 

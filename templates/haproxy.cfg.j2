@@ -47,6 +47,23 @@ defaults
 {% set __frontend_index=loop.index %}
 frontend http-{{frontend_name}}
     bind {{ frontend_config.bind_address }}:80
+{# -- find ports for portmapping -- #}
+{% for domain, masterconfig in haproxy_domains.iteritems() %}
+{% set mappingbackends=masterconfig.backend.portmapping|default([]) -%}
+{# -- USE DOMAIN: frontent is defined in config or if not defined and __frontend_index 1 (the first one) -- #}
+{% if not masterconfig.frontends is defined and __frontend_index == 1 %}
+	{%- set __use_frontend=True %}
+{% elif frontend_name in masterconfig.frontends | default([]) %}
+	{%- set __use_frontend=True %}
+{% else %}
+	{%- set __use_frontend=False %}
+{% endif %}
+{% if __use_frontend %}
+{% for config in mappingbackends %}
+    bind {{ frontend_config.bind_address }}:{{ config['port'] }}
+{% endfor %}{# end mappingbackends #}
+{% endif %}
+{% endfor %}{# end haproxy_domains.iteritems #}
     mode http
     option forwardfor
     {% include "stats.j2" %}
@@ -88,9 +105,24 @@ backend backend.{{ domain }}
 {% for domain, masterconfig in haproxy_domains.iteritems() %}
 {% set routingbackends=masterconfig.backend.routing|default({}) %}
 {% for route, config in routingbackends.iteritems() %}
+
 ##### backend for domain: {{ domain }} route: /{{ route }} #####
 {% set suffix='.' + route|replace('/','--') %}
 backend backend.{{ domain }}{{ suffix }}
+    mode http
+{% include "backends.j2" %}
+{% endfor %}
+{% endfor %}
+
+# port mapping ###################################
+
+{# -- loop trough routes an include backend again #}
+{% for domain, masterconfig in haproxy_domains.iteritems() %}
+{% set mappingbackends=masterconfig.backend.portmapping|default([]) %}
+{% for config in mappingbackends %}
+
+##### backend for domain: {{ domain }} port: {{ config['port'] }} #####
+backend backend.{{ domain }}.port-{{ config['port'] }}
     mode http
 {% include "backends.j2" %}
 {% endfor %}
@@ -101,6 +133,7 @@ backend backend.{{ domain }}{{ suffix }}
 {# -- letsencrypt special backend -- #}
 {% for domain, masterconfig in haproxy_domains.iteritems() %}
 {% if haproxy_letsencrypt_validation %}
+
 ##### backend for domain: {{ domain }} letsencrypt validation
 backend backend.letsencrypt-{{ domain }}
    mode http

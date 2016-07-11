@@ -136,7 +136,34 @@ Example:
               port: 8082
               servers:
               - 10.100.2.91
+              
+##Portmapping
 
+Since version 0.7
+
+Use different backends based on dst port.
+
+Example:
+
+	  re.test.amana.vpn:
+	    http: true
+	    frontends:
+	    - internal
+	    backend:
+	      port: 8080 # port 80 -> localhost:8080
+	      servers: 
+	      - localhost
+	      portmapping: 
+	      - port: 7890 # port 7890 -> localhost:6782
+	        backend:
+	          port: 6782
+	          servers:
+	          - localhost
+	      - port: 3456 # port 3456 -> localhost:3456
+	          port: 3456
+	          servers:
+	          - localhost
+          
 ##Letsencrypt 
 
 Since version 0.4
