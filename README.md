@@ -132,6 +132,7 @@ Example:
         routing:
           seafhttp:
             striproute: True      # optional, if set to True the url will be rewritten ( /seafhttp/ to / in this example )
+            rewrite_to: foo/bar   # optional, rewrites /seafhttp/ to /foo/bar/ in this example DOES NOT WORK IF striproute=True! (since version 0.8)
             backend:
               port: 8082
               servers:

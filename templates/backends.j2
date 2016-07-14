@@ -16,11 +16,10 @@
 {% if config.striproute is defined and route is defined and config.striproute %}
     # rewrite /{{ route }}/ to /
     reqrep ^([^\ :]*)\ /{{ route }}/(.*)     \1\ /\2
-{% endif %}{# end: striproutes #}
-{% if config.rewrite_to is defined and route is defined %}
+{# end: striproute #}{% elif config.rewrite_to is defined and route is defined %}
     # rewrite /{{ route }}/ to /
     reqrep ^([^\ :]*)\ /{{ route }}/(.*)     \1\ /{{ config.rewrite_to }}/\2
-{% endif %}{# end: rewrite_to #}
+{% endif %}{# end: rewrite_to/striproute #}
 {% if config.backend.check is defined and config.backend.check != None %}
 {% set checks = config.backend.check %}
 {% else %}
