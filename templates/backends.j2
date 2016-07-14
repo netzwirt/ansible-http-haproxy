@@ -17,6 +17,10 @@
     # rewrite /{{ route }}/ to /
     reqrep ^([^\ :]*)\ /{{ route }}/(.*)     \1\ /\2
 {% endif %}{# end: striproutes #}
+{% if config.rewrite_to is defined and route is defined and config.striproute %}
+    # rewrite /{{ route }}/ to /
+    reqrep ^([^\ :]*)\ /{{ route }}/(.*)     \1\ /{{ config.rewrite_to }}/\2
+{% endif %}{# end: rewrite_to #}
 {% if config.backend.check is defined and config.backend.check != None %}
 {% set checks = config.backend.check %}
 {% else %}
@@ -25,3 +29,4 @@
 {% for server in config.backend.servers %}
     server node{{ loop.index }}.backend.{{ domain }}{{ suffix|default('') }} {{ server }}:{{ config.backend.port|default(haproxy_default_backend_port) }} {{ checks }}
 {% endfor %}
+
