@@ -27,6 +27,6 @@
 {% set backup = config.backend.backup|default(False) %}
 {% endif %}
 {% for server in config.backend.servers %}
-    server node{{ loop.index }}.backend.{{ domain }}{{ suffix|default('') }} {{ server }}:{{ config.backend.port|default(haproxy_default_backend_port) }} {{ checks }} {% if not loop.first and backup %}backup{% endif %} 
+    server {{ server }}{{ suffix|default('') }} {{ server }}:{{ config.backend.port|default(haproxy_default_backend_port) }} {{ checks }} {% if not loop.first and backup %}backup{% endif %} 
 {% endfor %}
 
