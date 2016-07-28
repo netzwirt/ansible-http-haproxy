@@ -18,6 +18,9 @@ galaxy_info:
   - networking
   - system
   - web
+  - proxy
+  - haproxy
+  - reverse-proxy
   
 dependencies: []
   
