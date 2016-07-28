@@ -24,8 +24,9 @@
 {% set checks = config.backend.check %}
 {% else %}
 {% set checks = haproxy_default_backend_check %}
+{% set backup = config.backend.backup|default(False) %}
 {% endif %}
 {% for server in config.backend.servers %}
-    server node{{ loop.index }}.backend.{{ domain }}{{ suffix|default('') }} {{ server }}:{{ config.backend.port|default(haproxy_default_backend_port) }} {{ checks }}
+    server node{{ loop.index }}.backend.{{ domain }}{{ suffix|default('') }} {{ server }}:{{ config.backend.port|default(haproxy_default_backend_port) }} {{ checks }} {% if not loop.first and backup %}backup{% endif %} 
 {% endfor %}
 

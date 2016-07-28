@@ -61,6 +61,7 @@ All config options:
         backend:
           port: 8080        # optional -> default is 80
           check:            # optional -> default is check 
+          backup:           # Optional -> default is False, if this is set to True only the first backend is used, the others are configured as backup-nodes
           servers:
           - 10.100.2.80
           - 10.100.2.81
