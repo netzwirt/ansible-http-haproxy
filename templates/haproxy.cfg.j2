@@ -144,10 +144,15 @@ backend backend.letsencrypt-{{ domain }}
 {% endif  %}
 {% endfor %}
 
-
+{# works with old config #}
 {% if haproxy_mysql_cluster and haproxy_mysql_nodes[0] is defined %}
-{% include "galera-cluster.j2" %}
+{% include "galera-cluster-backward.j2" %}
 {% endif %}
+
+{# works with new config #}
+{% for galera in haproxy_mysql_clusters %}
+{% include "galera-cluster.j2" %}
+{% endfor %}
 
 {% if haproxy_tcp_listen and haproxy_tcp_listen[0] is defined %}
 {% include "haproxy-listen.j2" %}

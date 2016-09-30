@@ -147,7 +147,7 @@ Use different backends based on dst port.
 
 Example:
 
-	  re.test.amana.vpn:
+	  re.testexample.com:
 	    http: true
 	    frontends:
 	    - internal
@@ -184,6 +184,9 @@ For convenience the url's are rewritten:
 
 ##Galera cluster
 
+
+###Old config style for just one proxy
+
 Since version 0.4
 
 Create a haproxy listen-config for a MySQL cluster (@see templates/galera-cluster.j2)
@@ -200,6 +203,25 @@ There are two check methods: mysql or http (`haproxy_mysql_check_type`)
 
 `haproxy_mysql_check_port`is onnly required when check method http is used.
 
+
+###New config style for several galera-clusters
+
+Since version 0.8
+
+	# new config layout for mysql proxy
+	haproxy_mysql_clusters:
+	- name: mysql.prod.example.com
+	  options:
+	  - 'timeout client  84600000'
+	  - 'timeout server  84600000'
+	  nodes: 
+	  - 192.168.12.1
+	  - 192.168.12.2
+	  - 192.168.12.1
+	  listen_ip: 10.10.10.10
+	  listen_port: 3306
+	  check_type: http
+	  check_port: 9334
 
 ##TCP listeners
 
