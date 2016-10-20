@@ -45,12 +45,12 @@
 
 - name: set major version
   set_fact:
-    _major_version: "{{ _haproxy_version[0] }}" 
+    _haproxy_major_version: "{{ _haproxy_version[0] }}" 
 
     
 - name: set minor version
   set_fact:
-    _minor_version: "{{ _haproxy_version[1] }}" 
+    _haproxy_minor_version: "{{ _haproxy_version[1] }}" 
 
 
 - name: enable init script
