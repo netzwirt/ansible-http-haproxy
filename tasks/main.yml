@@ -30,7 +30,27 @@
   with_items:
     - haproxy
     - socat
-  when: ansible_os_family == 'Debian'
+
+
+- name: get haproxy's version
+  shell: "haproxy -v|grep version|awk '{print $3}'"
+  register: _haproxy_version_raw
+  changed_when: False
+
+  
+- name: set version
+  set_fact:
+    _haproxy_version: "{{ _haproxy_version_raw.stdout.split('.') }}" 
+
+
+- name: set major version
+  set_fact:
+    _major_version: "{{ _haproxy_version[0] }}" 
+
+    
+- name: set minor version
+  set_fact:
+    _minor_version: "{{ _haproxy_version[1] }}" 
 
 
 - name: enable init script
