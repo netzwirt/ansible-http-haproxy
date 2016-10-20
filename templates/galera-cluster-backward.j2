@@ -1,8 +1,15 @@
 
 
 # mysql frontend ###################################
-
+# for version {{ _haproxy_major_version }}.{{ _haproxy_minor_version }}
+{# check for config version #}
+{# listen changed in 1.6 #}
+{% if _haproxy_major_version == '1' and _haproxy_minor_version >= '6' %}
+listen mysql-cluster 
+    bind {{ haproxy_mysql_listen_ip }}:{{ haproxy_mysql_listen_port }}
+{% else %}
 listen mysql-cluster {{ haproxy_mysql_listen_ip }}:{{ haproxy_mysql_listen_port }}
+{% endif %}
     balance leastconn
     mode tcp
     option tcplog
@@ -30,8 +37,15 @@ listen mysql-cluster {{ haproxy_mysql_listen_ip }}:{{ haproxy_mysql_listen_port 
 
 
 # mysql frontend readonly ############################
-
+# for version {{ _haproxy_major_version }}.{{ _haproxy_minor_version }}
+{# check for config version #}
+{# listen changed in 1.6 #}
+{% if _haproxy_major_version == '1' and _haproxy_minor_version >= '6' %}
+listen mysql-cluster-readonly 
+    bind {{ haproxy_mysql_listen_ip }}:{{ haproxy_mysql_listen_port + 1 }}
+{% else %}
 listen mysql-cluster-readonly {{ haproxy_mysql_listen_ip }}:{{ haproxy_mysql_listen_port + 1 }}
+{% endif %}
     balance leastconn
     mode tcp
     option tcplog

@@ -1,8 +1,15 @@
 
 
 # mysql frontend ###################################
-
+# for version {{ _haproxy_major_version }}.{{ _haproxy_minor_version }}
+{# check for config version #}
+{# listen changed in 1.6 #}
+{% if _haproxy_major_version == '1' and _haproxy_minor_version >= '6' %}
+listen {{ galera.name }} 
+    bind {{ galera.listen_ip }}:{{ galera.listen_port }}
+{% else %}
 listen {{ galera.name }} {{ galera.listen_ip }}:{{ galera.listen_port }}
+{% endif %}
     balance leastconn
     mode tcp
     option tcplog
@@ -30,8 +37,15 @@ listen {{ galera.name }} {{ galera.listen_ip }}:{{ galera.listen_port }}
 
 
 # mysql frontend readonly ############################
-
+# for version {{ _haproxy_major_version }}.{{ _haproxy_minor_version }}
+{# check for config version #}
+{# listen changed in 1.6 #}
+{% if _haproxy_major_version == '1' and _haproxy_minor_version >= '6' %}
+listen {{ galera.name }}-readonly 
+    bind {{ galera.listen_ip }}:{{ galera.listen_port + 1 }}
+{% else %}
 listen {{ galera.name }}-readonly {{ galera.listen_ip }}:{{ galera.listen_port + 1 }}
+{% endif %}
     balance leastconn
     mode tcp
     option tcplog

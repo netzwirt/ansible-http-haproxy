@@ -1,9 +1,16 @@
 
 
 # tcp listeners ####################################
-
+# for version {{ _haproxy_major_version }}.{{ _haproxy_minor_version }}
 {% for config in haproxy_tcp_listen %}
+{# check for config version #}
+{# listen changed in 1.6 #}
+{% if _haproxy_major_version == '1' and _haproxy_minor_version >= '6' %}
+listen {{ config.name }} 
+    bind {{ config.bind_address }}:{{ config.bind_port }}
+{% else %}
 listen {{ config.name }} {{ config.bind_address }}:{{ config.bind_port }}
+{% endif %}
     balance leastconn
     mode tcp
     option tcplog
