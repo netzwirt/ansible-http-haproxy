@@ -14,7 +14,7 @@
     repo: "ppa:vbernat/haproxy-1.5" 
     state: present 
     update_cache: yes
-  when: ansible_distribution == "Ubuntu"
+  when: ansible_distribution_release == "trusty"
 
 
 - name: update apt-cache
