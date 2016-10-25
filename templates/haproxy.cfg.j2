@@ -66,6 +66,7 @@ frontend http-{{frontend_name}}
 {% endfor %}{# end haproxy_domains.iteritems #}
     mode http
     option forwardfor
+    http-request set-header X-Forwarded-Proto https if { ssl_fc }
     {% include "stats.j2" %}
 	{% set __configure_http=true %}
 	{% set __configure_https=false %}
@@ -78,6 +79,7 @@ frontend https-{{ frontend_name }}
     bind {{ frontend_config.bind_address }}:443 ssl {{ __certificates }}
     mode http
     option forwardfor
+    http-request set-header X-Forwarded-Proto https if { ssl_fc }
     {% include "stats.j2" %}
 	{% set __configure_http=false %}
 	{% set __configure_https=true %}
