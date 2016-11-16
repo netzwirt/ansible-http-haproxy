@@ -16,6 +16,10 @@ Just define the domain-names and the backends ip's to configure a reverse proxy.
 
 #Role Variables
 
+##Secure ciphers
+
+Set `haproxy_disable_insecure_ciphers` to true. This will disable insecure ciphers.
+
 ##Named acl's `haproxy_source_acl`
 
 A dictionary containing { acl-name : list with ip-ranges } which can be used for access control in frontends.
@@ -53,6 +57,7 @@ All config options:
         https: true         # optional default is false
         http: true          # optional default is true
         redirect: false     # optional default is false, if true https and http must be true to redirect domain to https
+        force502: false     # optional default is false, if true haproxy sends 502 Bad Gateway if backend sends 5xx error
         options:            # optional, default is balance leastconn, option httpclose, option forwardfor
         - key: value        # if used: list with key: value pairs
         limit_to:           # optional, no default
