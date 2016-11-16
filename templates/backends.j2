@@ -12,6 +12,11 @@
  
 {% endfor %}
 {% endif %}
+{# force bad gateway (error 502) for backend erros greater/equal than 500 #}
+{% if config.force502 is defined and config.force502 %}
+    acl is_internal_error status ge 500
+    rspideny . if is_internal_error
+{% endif %}
 {# rewrites for routing (strip route from request) #}
 {% if config.striproute is defined and route is defined and config.striproute %}
     # rewrite /{{ route }}/ to /
