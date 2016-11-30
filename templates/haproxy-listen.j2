@@ -3,6 +3,7 @@
 # tcp listeners ####################################
 # for version {{ _haproxy_major_version }}.{{ _haproxy_minor_version }}
 {% for config in haproxy_tcp_listen %}
+
 {# check for config version #}
 {# listen changed in 1.6 #}
 {% if _haproxy_major_version == '1' and _haproxy_minor_version >= '6' %}
@@ -20,7 +21,8 @@ listen {{ config.name }} {{ config.bind_address }}:{{ config.bind_port }}
     {{ opt }}
 {% endfor %}
 {% endif %}
+{% set backup = config.backend.backup|default(False) %}
 {% for backend_ip in config.backend.servers %}
-    server {{ config.name }}-node-{{ loop.index }} {{ backend_ip }}:{{ config.backend.port }} {{ config.backend.check }}
+    server {{ config.name }}-node-{{ loop.index }} {{ backend_ip }}:{{ config.backend.port }} {{ config.backend.check|default(haproxy_default_backend_check) }} {% if not loop.first and backup %}backup{% endif %}
 {% endfor %}
 {% endfor %}
