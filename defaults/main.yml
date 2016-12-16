@@ -25,3 +25,16 @@ haproxy_mysql_listen_ip: 127.0.0.1
 haproxy_mysql_listen_port: 3306
 haproxy_mysql_check_type: mysql # mysql or http
 haproxy_mysql_check_port: 9200 # only required for haproxy_mysql_check_type = http
+
+
+# how domainname is matched
+haproxy_domain_matcher: hdr_dom
+# possible values are
+#  hdr     : exact string match
+#  hdr_beg : prefix match
+#  hdr_dir : subdir match
+#  hdr_dom : domain match
+#  hdr_end : suffix match
+#  hdr_len : length match
+#  hdr_reg : regex match
+#  hdr_sub : substring match

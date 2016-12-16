@@ -32,7 +32,7 @@
 
     # host based acl list
 {% for domain, config in haproxy_domains.iteritems() %}
-    acl use-{{ domain }}{% if __configure_https %} ssl_fc_sni{% else %} hdr_dom(host) -i{% endif %} {{ domain }}
+    acl use-{{ domain }}{% if __configure_https %} ssl_fc_sni{% else %} {{ haproxy_domain_matcher}}(host) -i{% endif %} {{ domain }}
     {%- for alias in config.alias | default([]) %} {{ alias }}{% endfor %}
 
 {% endfor -%}
