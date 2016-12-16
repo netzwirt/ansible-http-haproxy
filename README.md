@@ -258,7 +258,7 @@ None
 
 #Example Playbook
 
-This is an example playboox with the minimal required config. It will setup haproxy for www.example.com listening on port 80 with 2 backend-servers (10.100.2.62,10.100.2.61).
+This is an example playbook with the minimal required config. It will setup haproxy for www.example.com listening on port 80 with 2 backend-servers (10.100.2.62,10.100.2.61).
 
     - hosts: haproxy
       become: true
