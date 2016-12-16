@@ -222,7 +222,7 @@ Since version 0.8
 	  nodes: 
 	  - 192.168.12.1
 	  - 192.168.12.2
-	  - 192.168.12.1
+	  - 192.168.12.3
 	  listen_ip: 10.10.10.10
 	  listen_port: 3306
 	  check_type: http
