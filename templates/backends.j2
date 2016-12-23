@@ -12,6 +12,12 @@
  
 {% endfor %}
 {% endif %}
+{# add EXTRA options #}
+{% for item in config.extraoptions|default([]) %}
+    {% for key,val in item.iteritems() %}{{ key }} {{ val }}{% endfor %}
+ 
+{% endfor %}
+
 {# force bad gateway (error 502) for backend erros greater/equal than 500 #}
 {% if config.force502 is defined and config.force502 %}
     acl is_internal_error status ge 500

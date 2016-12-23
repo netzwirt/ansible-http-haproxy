@@ -58,7 +58,10 @@ All config options:
         http: true          # optional default is true
         redirect: false     # optional default is false, if true https and http must be true to redirect domain to https
         force502: false     # optional default is false, if true haproxy sends 502 Bad Gateway if backend sends 5xx error
-        options:            # optional, default is balance leastconn, option httpclose, option forwardfor
+        options:            # optional, default is balance leastconn, option httpclose, option forwardfor, if this is used defaults get overwritten
+                            # to add options use extraoptions
+        - key: value        # if used: list with key: value pairs
+        extraoptions:       # options
         - key: value        # if used: list with key: value pairs
         limit_to:           # optional, no default
         - office.public     # if used: list names defined in "haproxy_source_acl"
@@ -144,6 +147,29 @@ Example:
               servers:
               - 10.100.2.91
               
+###Route options
+
+Example
+Overwrite default options:
+
+    ...
+    routing:
+      myroute:
+      ...
+      options:
+      - rspidel: '^WWW-Authenticate:.*'
+      ...
+
+Add extra options:
+
+    ...
+    routing:
+      myroute:
+      ...
+      extraoptions:
+      - rspidel: '^WWW-Authenticate:.*'
+      ...
+
 ##Portmapping
 
 Since version 0.7
