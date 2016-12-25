@@ -65,11 +65,11 @@ frontend http-{{frontend_name}}
 	{%- set __use_frontend = False %}
 {% endif %}
 {% if __use_frontend %}
-{% for config in __used_ports %}
-    bind {{ frontend_config.bind_address }}:{{ config.port }}
-{% endfor %}{# end __used_ports #}
-{% endif %}
-{% endfor %}{# end haproxy_domains.iteritems #}
+{% for port_config in __used_ports %}
+    bind {{ frontend_config.bind_address }}:{{ port_config.port }}
+{% endfor %} {# -- end __used_ports -- #}
+{% endif %} {# -- end  __use_frontend -- #}
+{% endfor %} {# -- end haproxy_domains.iteritems # find ports for portmapping -- #}
     mode http
     option forwardfor
     http-request set-header X-Forwarded-Proto https if { ssl_fc }
@@ -83,10 +83,23 @@ frontend http-{{frontend_name}}
 ##################################################
 frontend https-{{ frontend_name }}
     bind {{ frontend_config.bind_address }}:443 ssl {{ __certificates }}
-{# -- find non sni ports -- #}
-{% if frontend_config.nonsniport|default(False) %}
-    bind {{ frontend_config.bind_address }}:{{ frontend_config.nonsniport }} ssl {{ __certificates }}
+{# -- find ports for portmapping -- #}
+{% for domain, masterconfig in haproxy_domains.iteritems() %}
+{% set __used_ports = masterconfig.backend.portmapping|default([]) -%}
+{# -- USE DOMAIN: frontent is defined in config or if not defined and __frontend_index 1 (the first one) -- #}
+{% if not masterconfig.frontends is defined and __frontend_index == 1 %}
+	{%- set __use_frontend = True %}
+{% elif frontend_name in masterconfig.frontends | default([]) %}
+	{%- set __use_frontend=True %}
+{% else %}
+	{%- set __use_frontend = False %}
 {% endif %}
+{% if __use_frontend %}
+{% for port_config in __used_ports %}
+    bind {{ frontend_config.bind_address }}:{{ port_config.port }}
+{% endfor %} {# -- end __used_ports -- #}
+{% endif %} {# -- end  __use_frontend -- #}
+{% endfor %} {# -- end haproxy_domains.iteritems # find ports for portmapping -- #}
     mode http
     option forwardfor
     http-request set-header X-Forwarded-Proto https if { ssl_fc }
