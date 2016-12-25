@@ -67,9 +67,9 @@ frontend http-{{frontend_name}}
 {% if __use_frontend %}
 {% for port_config in __used_ports %}
     bind {{ frontend_config.bind_address }}:{{ port_config.port }}
-{% endfor %} {# -- end __used_ports -- #}
-{% endif %} {# -- end  __use_frontend -- #}
-{% endfor %} {# -- end haproxy_domains.iteritems # find ports for portmapping -- #}
+{% endfor -%}{# -- end __used_ports -- #}
+{% endif -%}{# -- end  __use_frontend -- #}
+{% endfor %}{# -- end haproxy_domains.iteritems # find ports for portmapping -- #}
     mode http
     option forwardfor
     http-request set-header X-Forwarded-Proto https if { ssl_fc }
@@ -93,13 +93,16 @@ frontend https-{{ frontend_name }}
 	{%- set __use_frontend=True %}
 {% else %}
 	{%- set __use_frontend = False %}
-{% endif %}
+{% endif -%}
 {% if __use_frontend %}
 {% for port_config in __used_ports %}
-    bind {{ frontend_config.bind_address }}:{{ port_config.port }}
-{% endfor %} {# -- end __used_ports -- #}
-{% endif %} {# -- end  __use_frontend -- #}
-{% endfor %} {# -- end haproxy_domains.iteritems # find ports for portmapping -- #}
+    bind {{ frontend_config.bind_address }}:{{ port_config.port }} ssl {{ __certificates }}
+{% endfor -%}{# -- end __used_ports -- #}
+{% if masterconfig.sni_alt|default(False) %}
+    bind {{ frontend_config.bind_address }}:{{ masterconfig.sni_alt }} ssl {{ __certificates }}
+{% endif %}
+{% endif -%}{# -- end  __use_frontend -- #}
+{% endfor %}{# -- end haproxy_domains.iteritems # find ports for portmapping -- #}
     mode http
     option forwardfor
     http-request set-header X-Forwarded-Proto https if { ssl_fc }
