@@ -55,7 +55,7 @@ frontend http-{{frontend_name}}
     bind {{ frontend_config.bind_address }}:80
 {# -- find ports for portmapping -- #}
 {% for domain, masterconfig in haproxy_domains.iteritems() %}
-{% set mappingbackends=masterconfig.backend.portmapping|default([]) -%}
+{% set __used_ports = masterconfig.backend.portmapping|default([]) -%}
 {# -- USE DOMAIN: frontent is defined in config or if not defined and __frontend_index 1 (the first one) -- #}
 {% if not masterconfig.frontends is defined and __frontend_index == 1 %}
 	{%- set __use_frontend=True %}
@@ -65,9 +65,9 @@ frontend http-{{frontend_name}}
 	{%- set __use_frontend=False %}
 {% endif %}
 {% if __use_frontend %}
-{% for config in mappingbackends %}
+{% for config in __used_ports %}
     bind {{ frontend_config.bind_address }}:{{ config['port'] }}
-{% endfor %}{# end mappingbackends #}
+{% endfor %}{# end __used_ports #}
 {% endif %}
 {% endfor %}{# end haproxy_domains.iteritems #}
     mode http
@@ -83,6 +83,10 @@ frontend http-{{frontend_name}}
 ##################################################
 frontend https-{{ frontend_name }}
     bind {{ frontend_config.bind_address }}:443 ssl {{ __certificates }}
+{# -- find non sni ports -- #}
+{% if frontend_config.nonsniport|default(False) %}
+    bind {{ frontend_config.bind_address }}:{{ frontend_config.nonsniport }} ssl {{ __certificates }}
+{% endif %}
     mode http
     option forwardfor
     http-request set-header X-Forwarded-Proto https if { ssl_fc }
@@ -126,8 +130,8 @@ backend backend.{{ domain }}{{ suffix }}
 
 {# -- loop trough routes an include backend again #}
 {% for domain, masterconfig in haproxy_domains.iteritems() %}
-{% set mappingbackends=masterconfig.backend.portmapping|default([]) %}
-{% for config in mappingbackends %}
+{% set __used_ports = masterconfig.backend.portmapping|default([]) %}
+{% for config in __used_ports %}
 
 ##### backend for domain: {{ domain }} port: {{ config['port'] }} #####
 backend backend.{{ domain }}.port-{{ config['port'] }}
