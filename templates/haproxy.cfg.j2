@@ -50,7 +50,7 @@ defaults
 {% for frontend_name, frontend_config in haproxy_configure_frontends.iteritems() %}
 # {{frontend_name}} frontend for all http traffic
 ##################################################
-{% set __frontend_index=loop.index %}
+{% set __frontend_index = loop.index %}
 frontend http-{{frontend_name}}
     bind {{ frontend_config.bind_address }}:80
 {# -- find ports for portmapping -- #}
@@ -58,15 +58,15 @@ frontend http-{{frontend_name}}
 {% set __used_ports = masterconfig.backend.portmapping|default([]) -%}
 {# -- USE DOMAIN: frontent is defined in config or if not defined and __frontend_index 1 (the first one) -- #}
 {% if not masterconfig.frontends is defined and __frontend_index == 1 %}
-	{%- set __use_frontend=True %}
+	{%- set __use_frontend = True %}
 {% elif frontend_name in masterconfig.frontends | default([]) %}
 	{%- set __use_frontend=True %}
 {% else %}
-	{%- set __use_frontend=False %}
+	{%- set __use_frontend = False %}
 {% endif %}
 {% if __use_frontend %}
 {% for config in __used_ports %}
-    bind {{ frontend_config.bind_address }}:{{ config['port'] }}
+    bind {{ frontend_config.bind_address }}:{{ config.port }}
 {% endfor %}{# end __used_ports #}
 {% endif %}
 {% endfor %}{# end haproxy_domains.iteritems #}
@@ -74,8 +74,8 @@ frontend http-{{frontend_name}}
     option forwardfor
     http-request set-header X-Forwarded-Proto https if { ssl_fc }
     {% include "stats.j2" %}
-	{% set __configure_http=true %}
-	{% set __configure_https=false %}
+	{% set __configure_http = True %}
+	{% set __configure_https = False %}
 	{%- include "domains.j2" %}
 
 {% if __certificates != '' %}
@@ -91,8 +91,8 @@ frontend https-{{ frontend_name }}
     option forwardfor
     http-request set-header X-Forwarded-Proto https if { ssl_fc }
     {% include "stats.j2" %}
-	{% set __configure_http=false %}
-	{% set __configure_https=true %}
+	{% set __configure_http = False %}
+	{% set __configure_https = True %}
 	{%- include "domains.j2" %}
 {% endif -%}
 
@@ -115,8 +115,8 @@ backend backend.{{ domain }}
 
 {# -- loop trough routes an include backend again #}
 {% for domain, masterconfig in haproxy_domains.iteritems() %}
-{% set routingbackends=masterconfig.backend.routing|default({}) %}
-{% for route, config in routingbackends.iteritems() %}
+{% set __routes = masterconfig.backend.routing|default({}) %}
+{% for route, config in __routes.iteritems() %}
 
 ##### backend for domain: {{ domain }} route: /{{ route }} #####
 {% set suffix='.' + route|replace('/','--') %}
@@ -133,8 +133,8 @@ backend backend.{{ domain }}{{ suffix }}
 {% set __used_ports = masterconfig.backend.portmapping|default([]) %}
 {% for config in __used_ports %}
 
-##### backend for domain: {{ domain }} port: {{ config['port'] }} #####
-backend backend.{{ domain }}.port-{{ config['port'] }}
+##### backend for domain: {{ domain }} port: {{ config.port }} #####
+backend backend.{{ domain }}.port-{{ config.port }}
     mode http
 {% include "backends.j2" %}
 {% endfor %}
