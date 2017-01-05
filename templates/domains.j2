@@ -1,10 +1,7 @@
-
-
 {% if True %}
 
     # ------------------- ACL's---------------------------------------
 {% endif %}
-
 
 {%- if haproxy_source_acl is defined %}
     # acl ranges 
@@ -15,17 +12,13 @@
 {% endif -%}
 
 
-
-
 {# #### acl for letsencrypt route ############################ #}
 
-{% if haproxy_letsencrypt_validation %}
+{%- if haproxy_letsencrypt_validation %}
 
     # acl route for letsencrypt validation files
     acl route-letsencrypt path_beg /.well-known/acme-challenge
 {% endif -%}
-
-
 
 
 {# #### host name based acl's ################################ #}
@@ -34,44 +27,46 @@
 {% for domain, config in haproxy_domains.iteritems() %}
     acl use-{{ domain }}{% if __configure_https %} ssl_fc_sni{% else %} {{ haproxy_domain_matcher}}(host) -i{% endif %} {{ domain }}
     {%- for alias in config.alias | default([]) %} {{ alias }}{% endfor %}
+{# #### non sni access port  ################################# #}
+{% if config.sni_alt|default(False) and __configure_https %}
+
+    acl use-{{ domain }} dst_port {{ config.sni_alt }}
+{% endif %}
 
 {% endfor -%}
 
 
-
-
 {# #### uri based acl's ###################################### #}
 
-{% for domain, config in haproxy_domains.iteritems() %}
-{% set routingbackends=config.backend.routing|default({}) %}
+{%- for domain, config in haproxy_domains.iteritems() %}
+{% set routingbackends = config.backend.routing|default(False) %}
+{% if routingbackends != False %}
 
     # uri based acl list (routes) for {{ domain }}
 {% for route, routeconfig in routingbackends.iteritems() %}
     acl route-{{ route|replace('/','--') }}-{{ domain }} path_beg /{{ route }}
 {% endfor -%}
+{% endif -%}
 {% endfor -%}
-
 
 
 {# #### port based acl's ###################################### #}
 
 {% for domain, config in haproxy_domains.iteritems() %}
-{% set mappingbackends=config.backend.portmapping|default([]) %}
+{% set mappingbackends = config.backend.portmapping|default(False) %}
+{% if mappingbackends != False %}
 
     # port based acl list (portmapping) for {{ domain }}
 {% for portconfig in mappingbackends %}
     acl mapping-{{ portconfig['port'] }}-{{ domain }} dst_port {{ portconfig['port'] }}
 {% endfor -%}
+{% endif -%}
 {% endfor -%}
-
-
 
 {% if True %}
 
     # ------------------- limit access -------------------------------
 {% endif %}
-
-
 
 {%- for domain, config in haproxy_domains.iteritems() %}
 	{% if haproxy_source_acl is defined -%}
@@ -131,8 +126,6 @@
     # ------------------- backend selection --------------------------
 {% endif %}
 
-
-
 {%- for domain, config in haproxy_domains.iteritems() %}
 {# -- SET VARIABLES -- #}
 {% set __use_http=config.http | default(haproxy_default_http) %}
@@ -152,8 +145,8 @@
 	{% set __use_frontend=True %}
 {% endif -%}
 
-{% set routingbackends=config.backend.routing|default({}) -%}
-{% set mappingbackends=config.backend.portmapping|default([]) %}
+{% set routingbackends = config.backend.routing|default({}) -%}
+{% set mappingbackends = config.backend.portmapping|default([]) %}
 
 
 {% if __use_frontend and ( ( __configure_http and __use_http) or ( __configure_https and __use_https) ) %}
