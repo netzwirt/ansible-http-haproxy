@@ -9,6 +9,9 @@ global
     group haproxy
     daemon
 
+    stats socket /var/run/haproxy.sock mode 600 level admin
+    stats timeout 2m #Wait up to 2 minutes for input
+
     tune.ssl.default-dh-param 2048
 {% if haproxy_disable_insecure_ciphers is defined and haproxy_disable_insecure_ciphers %}
     ssl-default-bind-options no-sslv3 no-tls-tickets
