@@ -22,7 +22,7 @@ listen {{ config.name }} {{ config.bind_address }}:{{ config.bind_port }}
 {% endfor %}
 {% endif %}
 {% set backup = config.backend.backup|default(False) %}
-{% for backend_ip in config.backend.servers %}
-    server {{ config.name }}-node-{{ loop.index }} {{ backend_ip }}:{{ config.backend.port }} {{ config.backend.check|default(haproxy_default_backend_check) }} {% if not loop.first and backup %}backup{% endif %} 
+{% for server in config.backend.servers %}
+    server {{ server }} {{ server }}:{{ config.backend.port }} {{ config.backend.check|default(haproxy_default_backend_check) }} {% if not loop.first and backup %}backup{% endif %} 
 {% endfor %}
 {% endfor %}
