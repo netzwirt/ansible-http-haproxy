@@ -6,7 +6,11 @@ haproxy_default_bind_address: '*'
 
 haproxy_stats_uri: '/haproxy?stats'
 haproxy_stats_users: []
-  
+
+# this will be added to global section
+# each entry is one line
+haproxy_global_opts: []
+        
 haproxy_pem_lookup: "{{inventory_dir}}/certs/"
 
 haproxy_listen: []
