@@ -78,7 +78,30 @@
   - reload haproxy
   when: item.value.https|default(haproxy_default_https)
   with_dict: "{{ haproxy_domains }}"
+ 
+
+- name: copy extra pem files
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/haproxy/certs/{{ item|basename }}"
+    owner: haproxy
+    group: haproxy
+  notify: 
+  - reload haproxy
+  with_items: "{{ haproxy_extra_pem|default([]) }}"
   
+
+- name: create certificates list
+  template:
+    src: certs.j2
+    dest: /etc/haproxy/certs-list
+    owner: haproxy
+    group: haproxy
+  notify: 
+  - reload haproxy
+  tags:
+  - cert-list  
+    
   
 - name: update config
   template: 

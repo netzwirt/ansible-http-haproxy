@@ -86,7 +86,7 @@ frontend http-{{frontend_name}}
 # {{ frontend_name }} frontend for all https traffic
 ##################################################
 frontend https-{{ frontend_name }}
-    bind {{ frontend_config.bind_address }}:443 ssl {{ __certificates }}
+    bind {{ frontend_config.bind_address }}:443 ssl crt-list /etc/haproxy/certs-list
 {# -- find ports for portmapping -- #}
 {% for domain, masterconfig in haproxy_domains.iteritems() %}
 {% set __used_ports = masterconfig.backend.portmapping|default([]) -%}
@@ -100,10 +100,10 @@ frontend https-{{ frontend_name }}
 {% endif -%}
 {% if __use_frontend %}
 {% for port_config in __used_ports %}
-    bind {{ frontend_config.bind_address }}:{{ port_config.port }} ssl {{ __certificates }}
+    bind {{ frontend_config.bind_address }}:{{ port_config.port }} ssl crt-list /etc/haproxy/certs-list
 {% endfor -%}{# -- end __used_ports -- #}
 {% if masterconfig.sni_alt|default(False) %}
-    bind {{ frontend_config.bind_address }}:{{ masterconfig.sni_alt }} ssl {{ __certificates }}
+    bind {{ frontend_config.bind_address }}:{{ masterconfig.sni_alt }} ssl crt-list /etc/haproxy/certs-list
 {% endif %}
 {% endif -%}{# -- end  __use_frontend -- #}
 {% endfor %}{# -- end haproxy_domains.iteritems # find ports for portmapping -- #}

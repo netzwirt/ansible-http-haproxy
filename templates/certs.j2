@@ -1,4 +1,7 @@
-{%- for domain, config in haproxy_domains.iteritems() -%} 
-{% set https=config.https|default(haproxy_default_https) %}
-{% if https  %} crt /etc/haproxy/certs/{{domain}}.pem {% endif %}
-{%- endfor -%}
+{% for domain, config in haproxy_domains.iteritems() %}{% set https=config.https|default(haproxy_default_https) %}
+{% if https %}/etc/haproxy/certs/{{ domain }}.pem
+{% endif %}
+{% endfor %}
+{% for add_pem in haproxy_extra_pem|default([]) %}
+/etc/haproxy/certs/{{ add_pem | basename }}
+{% endfor %}
