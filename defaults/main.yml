@@ -13,6 +13,10 @@ haproxy_global_opts: []
         
 haproxy_pem_lookup: "{{inventory_dir}}/certs/"
 
+haproxy_extra_pem: []
+# - /path/to/local/pem.file
+
+
 haproxy_listen: []
 
 # letsencrypt required 
