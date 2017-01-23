@@ -6,6 +6,13 @@
     name: haproxy 
     state: restarted
 
+
+- name: reload haproxy
+  service: 
+    name: haproxy 
+    state: reloaded
+    
+    
 - name: restart xinetd
   service: 
     name: haproxy 

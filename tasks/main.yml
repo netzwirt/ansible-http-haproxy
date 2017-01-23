@@ -75,7 +75,7 @@
     owner: haproxy
     group: haproxy
   notify: 
-  - restart haproxy
+  - reload haproxy
   when: item.value.https|default(haproxy_default_https)
   with_dict: "{{ haproxy_domains }}"
   
@@ -85,7 +85,7 @@
     src: haproxy.cfg.j2
     dest: /etc/haproxy/haproxy.cfg 
   notify: 
-  - restart haproxy
+  - reload haproxy
 
 
 - name: check config
