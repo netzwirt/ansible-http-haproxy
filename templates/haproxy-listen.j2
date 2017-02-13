@@ -3,14 +3,18 @@
 # tcp listeners ####################################
 # for version {{ _haproxy_major_version }}.{{ _haproxy_minor_version }}
 {% for config in haproxy_tcp_listen %}
+{% set bind_ports = config.bind_port|string %}
+{% set bind_ports = bind_ports.split(';') %}
 
 {# check for config version #}
 {# listen changed in 1.6 #}
 {% if _haproxy_major_version == '1' and _haproxy_minor_version >= '6' %}
-listen {{ config.name }} 
-    bind {{ config.bind_address }}:{{ config.bind_port }}
+listen {{ config.name }}
+{% for port in bind_ports %}
+    bind {{ config.bind_address }}:{{ port }} 
+{% endfor %}
 {% else %}
-listen {{ config.name }} {{ config.bind_address }}:{{ config.bind_port }}
+listen {{ config.name }} {% for port in bind_ports %}{{ config.bind_address }}:{{ port }} {% endfor %}
 {% endif %}
     balance leastconn
     mode tcp
