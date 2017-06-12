@@ -119,7 +119,7 @@
 
 - name: fail on config error
   fail: msg="{{ _haproxy_chk_config.stdout }}"
-  when: "{{ _haproxy_chk_config.rc != 0 }}"  
+  when: _haproxy_chk_config.rc != 0
   
 # include poor mans server
 - include: 'letsencrypt.yml'
