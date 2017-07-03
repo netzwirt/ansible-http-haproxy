@@ -116,6 +116,7 @@
   command: "/usr/sbin/haproxy -c -f /etc/haproxy/haproxy.cfg"
   register: _haproxy_chk_config
   changed_when: False
+  check_mode: no
  
 
 - name: fail on config error
