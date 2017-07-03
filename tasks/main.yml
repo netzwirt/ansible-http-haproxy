@@ -36,6 +36,7 @@
   shell: "haproxy -v|grep version|awk '{print $3}'"
   register: _haproxy_version_raw
   changed_when: False
+  check_mode: no
 
   
 - name: set version
